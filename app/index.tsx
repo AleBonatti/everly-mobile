@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { FlatList, Image, Text, TouchableOpacity, View, RefreshControl } from "react-native";
+import { useRouter } from "expo-router";
 import { fetchCategories } from "../src/lib/api/categories";
 import { fetchItems } from "../src/lib/api/items";
 import type { Category, Item } from "../src/lib/api/schemas";
@@ -65,6 +66,7 @@ function ItemCard({ item, category }: { item: Item; category: Category | undefin
 export default function Index() {
     const { logout } = useAuth();
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+    const router = useRouter();
 
     const categoriesQuery = useQuery({
         queryKey: ["categories"],
@@ -136,7 +138,7 @@ export default function Index() {
                 <FlatList data={itemsQuery.data?.items ?? []} keyExtractor={(item) => item.id} contentContainerClassName="gap-2.5 px-4 pb-24" refreshControl={<RefreshControl refreshing={itemsQuery.isRefetching} onRefresh={() => itemsQuery.refetch()} tintColor="#fbbf24" colors={["#fbbf24"]} progressBackgroundColor="#171717" />} renderItem={({ item }) => <ItemCard item={item} category={categoryById.get(item.categoryId)} />} />
             )}
 
-            <TouchableOpacity className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-amber-400">
+            <TouchableOpacity onPress={() => router.push("/item-create")} className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-amber-400">
                 <Text className="text-2xl font-semibold text-neutral-950">+</Text>
             </TouchableOpacity>
         </View>
