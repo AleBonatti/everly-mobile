@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "expo-router";
+import { ApiError, NetworkError } from "../../src/lib/api/client";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../../src/lib/auth/AuthContext";
 
@@ -20,8 +21,14 @@ export default function LoginScreen() {
         setIsSubmitting(true);
         try {
             await login({ email, password });
-        } catch {
-            setError("Invalid email or password.");
+        } catch (err) {
+            if (err instanceof NetworkError) {
+                setError(err.message);
+            } else if (err instanceof ApiError) {
+                setError("Invalid email or password.");
+            } else {
+                setError("Something went wrong. Please try again.");
+            }
         } finally {
             setIsSubmitting(false);
         }

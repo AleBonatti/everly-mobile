@@ -31,6 +31,7 @@ export default function RegisterScreen() {
         try {
             await register({ name, email, password });
         } catch (err) {
+            console.error("Register error:", err);
             setError("Could not create account. That email may already be in use.");
         } finally {
             setIsSubmitting(false);

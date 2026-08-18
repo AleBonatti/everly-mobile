@@ -15,6 +15,12 @@ export class ApiError extends Error {
     }
 }
 
+export class NetworkError extends Error {
+    constructor() {
+        super("Could not reach the server. Check your connection and try again.");
+    }
+}
+
 type RequestOptions = {
     method?: "GET" | "POST" | "PATCH" | "DELETE";
     body?: unknown;
@@ -37,11 +43,16 @@ export async function apiFetch<T>(path: string, options: RequestOptions = {}): P
         }
     }
 
-    const response = await fetch(`${API_URL}${path}`, {
-        method,
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-    });
+    let response: Response;
+    try {
+        response = await fetch(`${API_URL}${path}`, {
+            method,
+            headers,
+            body: body ? JSON.stringify(body) : undefined,
+        });
+    } catch {
+        throw new NetworkError();
+    }
 
     if (!response.ok) {
         const errorBody = await response.json().catch(() => ({ message: response.statusText }));
