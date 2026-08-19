@@ -178,6 +178,12 @@ What's actually new is **app distribution**, which has no web equivalent to reus
 - Store-readiness is part of the MVP checklist: app icon, splash screen, real screenshots, a short store listing description, a privacy-policy URL (a static page, hostable on the existing Vercel web app), and accurate iOS permission-usage strings (human-readable reason shown in the permission prompt itself, e.g. "Everly uses your camera to add photos to your items").
 - Development still goes through Expo Go / EAS Build's free internal-distribution builds first — store submission is the *last* step, not the development method throughout.
 
+### Render cold starts and hosting cost — decided 2026-08-19
+
+Render's free tier sleeps the API after inactivity (~15 min) and takes 30-60+ seconds to cold-start on the next request — not acceptable for real users hitting the app for the first time, and this affects the web app too, not just mobile (it's a pre-existing production-readiness gap this decision just surfaced). **Decided: upgrade to Render's paid Starter tier (~$7/mo) before public store submission**, to keep the API warm. Total real cost to actually publish: ~$7/mo (Render) + $99/yr (Apple Developer) + $25 one-time (Google Play Console).
+
+**AWS migration considered and explicitly deferred** — moving just the API off Render onto AWS (App Runner, ECS Fargate, or EC2; DB/storage staying on Supabase, web frontend staying on Vercel) was discussed as a way to learn AWS as a CV skill. Real options and rough cost, for when this is revisited: **App Runner** (closest Render-equivalent, similar or slightly cheaper at this scale, least new AWS surface area to learn), **ECS Fargate** (a real step into "real AWS infra" — task definitions, cluster, ALB — but the ALB alone costs ~$16-18/mo regardless of traffic, often pricier than Render at this project's scale), **EC2** (cheapest in raw dollars, ~$5-8/mo or free-tier eligible, but you own OS patching/process supervision/TLS yourself). **Decided: finish the MVP through store submission on Render first, treat AWS migration as its own separate follow-up project afterward** — it's a genuine new skill area (IAM, networking basics), not a quick swap, and mixing it into the MVP finish line risks the same kind of multi-day detour the SDK/dev-client switch already was.
+
 ---
 
 ## 6. The MVP: what's in v1
