@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Alert, FlatList, Image, RefreshControl, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { fetchCategories } from "../src/lib/api/categories";
-import { deleteItem, fetchItems, updateItem } from "../src/lib/api/items";
+import { fetchItems, updateItem } from "../src/lib/api/items";
 import type { Category, Item } from "../src/lib/api/schemas";
 import { useAuth } from "../src/lib/auth/AuthContext";
 
@@ -34,9 +34,9 @@ function ImportanceDots({ importance }: { importance: number }) {
     );
 }
 
-function ItemCard({ item, category, onToggleArchive, onDelete }: { item: Item; category: Category | undefined; onToggleArchive: () => void; onDelete: () => void }) {
+function ItemCard({ item, category, onToggleArchive, onPress }: { item: Item; category: Category | undefined; onToggleArchive: () => void; onPress: () => void }) {
     return (
-        <TouchableOpacity onLongPress={onDelete} className="flex-row gap-3 rounded-xl border border-neutral-800 bg-neutral-900 p-2.5">
+        <TouchableOpacity onPress={onPress} className="flex-row gap-3 rounded-xl border border-neutral-800 bg-neutral-900 p-2.5">
             {item.imageUrl ? (
                 <Image source={{ uri: item.imageUrl }} className="h-20 w-20 rounded-lg" />
             ) : (
@@ -101,23 +101,6 @@ export default function Index() {
         },
     });
 
-    const deleteMutation = useMutation({
-        mutationFn: (itemId: string) => deleteItem(itemId),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["items"] });
-        },
-        onError: (err) => {
-            console.error("Delete error:", err);
-        },
-    });
-
-    function confirmDelete(item: Item) {
-        Alert.alert("Delete item", `Delete "${item.title}"? This can't be undone.`, [
-            { text: "Cancel", style: "cancel" },
-            { text: "Delete", style: "destructive", onPress: () => deleteMutation.mutate(item.id) },
-        ]);
-    }
-
     const categoryById = useMemo(() => {
         const map = new Map<string, Category>();
         for (const category of categoriesQuery.data ?? []) {
@@ -180,11 +163,22 @@ export default function Index() {
                             )}
                         </View>
                     }
-                    renderItem={({ item }) => <ItemCard item={item} category={categoryById.get(item.categoryId)} onToggleArchive={() => toggleArchiveMutation.mutate(item)} onDelete={() => confirmDelete(item)} />}
+                    renderItem={({ item }) => (
+                        <ItemCard
+                            item={item}
+                            category={categoryById.get(item.categoryId)}
+                            onToggleArchive={() => toggleArchiveMutation.mutate(item)}
+                            onPress={() => router.push(`/item/${item.id}`)}
+                        />
+                    )}
                 />
             )}
 
-            <TouchableOpacity onPress={() => router.push("/item-create")} className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-amber-400">
+            <TouchableOpacity
+                testID="add-item-button"
+                onPress={() => router.push("/item/new")}
+                className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-amber-400"
+            >
                 <Text className="text-2xl font-semibold text-neutral-950">+</Text>
             </TouchableOpacity>
         </View>
