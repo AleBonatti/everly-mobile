@@ -21,7 +21,7 @@ function RootNavigation() {
         } else if (user && inAuthGroup) {
             router.replace("/");
         }
-    }, [user, isLoading, segments]);
+    }, [user, isLoading, segments, router]);
 
     if (isLoading) {
         return null;

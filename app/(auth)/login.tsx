@@ -59,7 +59,7 @@ export default function LoginScreen() {
                         </TouchableOpacity>
                     </View>
                     <View className="mt-5 flex-row">
-                        <Text className="text-sm text-neutral-400">Don't have an account? </Text>
+                        <Text className="text-sm text-neutral-400">Don&apos;t have an account? </Text>
                         <Link href="/(auth)/register">
                             <Text className="text-sm text-amber-400">Sign up</Text>
                         </Link>

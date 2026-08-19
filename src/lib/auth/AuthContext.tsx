@@ -24,27 +24,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        async function restoreSession() {
+            const token = await getToken();
+            if (!token) {
+                setIsLoading(false);
+                return;
+            }
+
+            try {
+                const me = await apiFetch<AuthUser>("/auth/me");
+                setUser(me);
+            } catch (error) {
+                if (error instanceof ApiError && error.status === 401) {
+                    await clearToken();
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        }
         restoreSession();
     }, []);
-
-    async function restoreSession() {
-        const token = await getToken();
-        if (!token) {
-            setIsLoading(false);
-            return;
-        }
-
-        try {
-            const me = await apiFetch<AuthUser>("/auth/me");
-            setUser(me);
-        } catch (error) {
-            if (error instanceof ApiError && error.status === 401) {
-                await clearToken();
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    }
 
     async function login(input: LoginInput) {
         const parsed = loginInputSchema.parse(input);

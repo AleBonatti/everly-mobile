@@ -158,27 +158,16 @@ export default function Index() {
                             ) : (
                                 <>
                                     <Text className="text-lg text-neutral-100">Your list is empty</Text>
-                                    <Text className="text-center text-sm text-neutral-500">Heard about a great restaurant, a trip worth taking, or a show you can't miss? Add it here so you never forget.</Text>
+                                    <Text className="text-center text-sm text-neutral-500">Heard about a great restaurant, a trip worth taking, or a show you can&apos;t miss? Add it here so you never forget.</Text>
                                 </>
                             )}
                         </View>
                     }
-                    renderItem={({ item }) => (
-                        <ItemCard
-                            item={item}
-                            category={categoryById.get(item.categoryId)}
-                            onToggleArchive={() => toggleArchiveMutation.mutate(item)}
-                            onPress={() => router.push(`/item/${item.id}`)}
-                        />
-                    )}
+                    renderItem={({ item }) => <ItemCard item={item} category={categoryById.get(item.categoryId)} onToggleArchive={() => toggleArchiveMutation.mutate(item)} onPress={() => router.push(`/item/${item.id}`)} />}
                 />
             )}
 
-            <TouchableOpacity
-                testID="add-item-button"
-                onPress={() => router.push("/item/new")}
-                className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-amber-400"
-            >
+            <TouchableOpacity testID="add-item-button" onPress={() => router.push("/item/new")} className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-amber-400">
                 <Text className="text-2xl font-semibold text-neutral-950">+</Text>
             </TouchableOpacity>
         </View>
