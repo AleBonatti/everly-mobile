@@ -113,8 +113,8 @@ export default function ItemCreateScreen() {
                 await uploadItemImage(newItem.id, pickedImage.uri, pickedImage.mimeType);
             }
 
-            await queryClient.invalidateQueries({ queryKey: ["items"] });
             router.back();
+            await queryClient.invalidateQueries({ queryKey: ["items"] });
         } catch (err) {
             console.error("Save item error:", err);
             Alert.alert("Could not save", "Something went wrong. Please try again.");

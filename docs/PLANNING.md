@@ -266,10 +266,19 @@ Flagging where a web concept doesn't port 1:1, so scoping doesn't assume a strai
 4. **Item create** — title, description, category, importance dots, photo via `expo-image-picker`, address-search location via Nominatim. The MVP's core "why build this on mobile" feature.
 5. **Item update/delete** — mark done/restore toggle, delete with confirm dialog.
 6. **iPhone manual QA pass** — real device pass across all iOS versions available, before moving to Android, while the feature set is still small.
-7. **Android emulator pass** — same feature set; flag anything needing real-device verification later.
+7. **Android emulator pass** — same feature set; flag anything needing real-device verification later. **Deferred 2026-08-19**, out of build order — skipped ahead to step 8 (testing), revisit before store submission.
 8. **Testing pass** — component tests + a smoke-level Maestro e2e flow (login → add item with photo → see it in list → mark done).
 9. **CI** — GitHub Actions workflow: lint/typecheck/test.
 10. **Store readiness + account enrollment** — app icon, splash screen, screenshots, privacy-policy page, permission-usage strings; start Apple Developer + Google Play Console enrollment here, in parallel with step 11.
 11. **Internal distribution build** — EAS Build, installed directly on your own iPhone(s) outside Expo Go, proving the real build pipeline before involving a store.
 12. **Store submission** — EAS Submit to TestFlight/App Store and Play Console, once steps 10–11 are both done.
 13. **(Post-MVP, v1.1+)** — interactive map/location picker, search, categories management screen, in-app settings, forgot-password + email verification, refresh-token auth, push notifications, offline support, deep linking.
+
+---
+
+## 10. Known minor issues (deferred, not blocking)
+
+Small bugs found during QA that aren't worth stopping progress for, tracked here so they aren't forgotten:
+
+- **Pull-to-refresh on the items list appears to update before the pull gesture is released**, not just on release as `RefreshControl` should normally behave. Confirmed not a NativeWind/styling issue (reproduced identically with a plain `contentContainerStyle` instead of `contentContainerClassName`). Not yet root-caused — possibly a Simulator-specific trackpad-gesture quirk rather than a real device issue, or a genuine `RefreshControl` timing bug; needs isolated investigation (confirm on physical device specifically, check whether it's the spinner animating early — expected — vs. the actual data refetch firing early — not expected) before attempting a fix.
+- **General text/content sizing across the app reads too small** — fonts, labels, form fields, spacing. Flagged during the 2026-08-19 iPhone QA pass, deliberately deferred to a dedicated UI/polish pass rather than fixed piecemeal.

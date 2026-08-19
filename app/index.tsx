@@ -68,6 +68,7 @@ function ItemCard({ item, category, onToggleArchive, onDelete }: { item: Item; c
 export default function Index() {
     const { logout } = useAuth();
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+    const [isUserRefreshing, setIsUserRefreshing] = useState(false);
     const router = useRouter();
     const queryClient = useQueryClient();
 
@@ -83,6 +84,15 @@ export default function Index() {
                 category: selectedCategoryId ? [selectedCategoryId] : undefined,
             }),
     });
+
+    async function handlePullToRefresh() {
+        setIsUserRefreshing(true);
+        try {
+            await itemsQuery.refetch();
+        } finally {
+            setIsUserRefreshing(false);
+        }
+    }
 
     const toggleArchiveMutation = useMutation({
         mutationFn: (item: Item) => updateItem(item.id, { isArchived: !item.isArchived }),
@@ -157,40 +167,20 @@ export default function Index() {
                     data={itemsQuery.data?.items ?? []}
                     keyExtractor={(item) => item.id}
                     contentContainerClassName="flex-grow gap-2.5 px-4 pb-24"
-                    refreshControl={
-                        <RefreshControl
-                            refreshing={itemsQuery.isRefetching}
-                            onRefresh={() => itemsQuery.refetch()}
-                            tintColor="#fbbf24"
-                            colors={["#fbbf24"]}
-                            progressBackgroundColor="#171717"
-                        />
-                    }
+                    refreshControl={<RefreshControl refreshing={isUserRefreshing} onRefresh={handlePullToRefresh} tintColor="#fbbf24" colors={["#fbbf24"]} progressBackgroundColor="#171717" />}
                     ListEmptyComponent={
                         <View className="flex-1 items-center justify-center gap-2 px-6 py-16">
                             {itemsQuery.isError ? (
-                                <Text className="text-center text-red-400">
-                                    Could not load your list. Pull down to try again.
-                                </Text>
+                                <Text className="text-center text-red-400">Could not load your list. Pull down to try again.</Text>
                             ) : (
                                 <>
                                     <Text className="text-lg text-neutral-100">Your list is empty</Text>
-                                    <Text className="text-center text-sm text-neutral-500">
-                                        Heard about a great restaurant, a trip worth taking, or a show you can't
-                                        miss? Add it here so you never forget.
-                                    </Text>
+                                    <Text className="text-center text-sm text-neutral-500">Heard about a great restaurant, a trip worth taking, or a show you can't miss? Add it here so you never forget.</Text>
                                 </>
                             )}
                         </View>
                     }
-                    renderItem={({ item }) => (
-                        <ItemCard
-                            item={item}
-                            category={categoryById.get(item.categoryId)}
-                            onToggleArchive={() => toggleArchiveMutation.mutate(item)}
-                            onDelete={() => confirmDelete(item)}
-                        />
-                    )}
+                    renderItem={({ item }) => <ItemCard item={item} category={categoryById.get(item.categoryId)} onToggleArchive={() => toggleArchiveMutation.mutate(item)} onDelete={() => confirmDelete(item)} />}
                 />
             )}
 
