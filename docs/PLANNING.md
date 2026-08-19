@@ -188,8 +188,8 @@ Cut against two questions: does this prove a genuinely *new* piece of the RN/Exp
 - **Auth**: login + register + logout only. No forgot-password, no email verification, no in-app settings/profile editing (those exist on web already, shared accounts).
 - **Items — read**: list view, list-mode only (no grid), category-chip filter row, no free-text search.
 - **Items — create**: title, description, category (select from existing, via chips), importance (1–5 dot selector, maps to `importance`), photo via `expo-image-picker` (camera or gallery) — the single most mobile-native feature in v1.
-- **Items — update**: mark done / restore (`isArchived` toggle) only. Full multi-field edit screen deferred.
-- **Items — delete**: confirm-dialog pattern, same as web.
+- **Items — update**: mark done / restore (`isArchived` toggle) from the list, **plus a full edit screen** (tap an item to open it pre-filled, same fields as create, Save updates the item) — added to MVP scope 2026-08-19, expanding beyond the original archive-toggle-only plan.
+- **Items — delete**: confirm-dialog pattern, same as web. Lives on the item-edit screen (matches the mockup's original design), not as a separate list-view gesture.
 - **Location**: address-search text field that geocodes via Nominatim (same free service the web app already uses) — matches desktop's actual behavior, not a GPS "use my location" button and not an interactive map.
 - **Notes**: skipped for v1 — a secondary field even on web, not worth mobile screen real estate this early (though the API schema already supports it).
 
@@ -264,10 +264,10 @@ Flagging where a web concept doesn't port 1:1, so scoping doesn't assume a strai
 2. **Auth screens** — login/register/logout against the real API, `X-Client: mobile` header wired, token in `expo-secure-store`, confirm a session persists across app restarts, confirm an expired/invalid token correctly redirects to login rather than erroring silently.
 3. **Items list (read-only)** — logged-in user's items with category-chip filter (no search). First real data screen, proves TanStack Query + hand-copied schemas work end-to-end against the real API.
 4. **Item create** — title, description, category, importance dots, photo via `expo-image-picker`, address-search location via Nominatim. The MVP's core "why build this on mobile" feature.
-5. **Item update/delete** — mark done/restore toggle, delete with confirm dialog.
+5. **Item update/delete** — mark done/restore toggle from the list; full edit screen (tap an item, pre-filled form, Save updates) with delete-with-confirm living on that screen. Implemented as one shared dynamic route, `app/item/[id].tsx` (`id === "new"` for create, a real UUID for edit), rather than separate create/edit files.
 6. **iPhone manual QA pass** — real device pass across all iOS versions available, before moving to Android, while the feature set is still small.
-7. **Android emulator pass** — same feature set; flag anything needing real-device verification later. **Deferred 2026-08-19**, out of build order — skipped ahead to step 8 (testing), revisit before store submission.
-8. **Testing pass** — component tests + a smoke-level Maestro e2e flow (login → add item with photo → see it in list → mark done).
+7. **Android emulator pass** — same feature set; flag anything needing real-device verification later. **Deferred 2026-08-19**, out of build order — skipped ahead to step 9 (CI), revisit before store submission.
+8. **Testing pass** — component tests + a smoke-level Maestro e2e flow (login → add item with photo → see it in list → mark done). **Deferred 2026-08-19** — user's explicit call: the API already has test coverage, mobile is a thin client on top of it, and other work is a higher priority right now. Revisit before store submission; no test infrastructure (Jest, Maestro) is set up yet in this repo.
 9. **CI** — GitHub Actions workflow: lint/typecheck/test.
 10. **Store readiness + account enrollment** — app icon, splash screen, screenshots, privacy-policy page, permission-usage strings; start Apple Developer + Google Play Console enrollment here, in parallel with step 11.
 11. **Internal distribution build** — EAS Build, installed directly on your own iPhone(s) outside Expo Go, proving the real build pipeline before involving a store.
