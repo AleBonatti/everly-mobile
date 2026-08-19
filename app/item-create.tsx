@@ -2,9 +2,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Alert, Image, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { z } from "zod";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { fetchCategories } from "../src/lib/api/categories";
@@ -35,6 +35,7 @@ export default function ItemCreateScreen() {
     const {
         control,
         handleSubmit,
+        setValue,
         formState: { errors },
     } = useForm<FormValues>({
         resolver: zodResolver(formSchema),
@@ -46,6 +47,12 @@ export default function ItemCreateScreen() {
             address: "",
         },
     });
+
+    useEffect(() => {
+        if (categoriesQuery.data && categoriesQuery.data[0]) {
+            setValue("categoryId", categoriesQuery.data[0].id);
+        }
+    }, [categoriesQuery.data, setValue]);
 
     async function pickImage() {
         Alert.alert("Add photo", "Choose a source", [
@@ -117,7 +124,7 @@ export default function ItemCreateScreen() {
     }
 
     return (
-        <View className="flex-1 bg-neutral-950 pt-16">
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-neutral-950 pt-16">
             <View className="flex-row items-center justify-between px-4 pb-4">
                 <TouchableOpacity onPress={() => router.back()}>
                     <Text className="text-neutral-400">Cancel</Text>
@@ -128,7 +135,7 @@ export default function ItemCreateScreen() {
                 </TouchableOpacity>
             </View>
 
-            <ScrollView className="flex-1 px-4" contentContainerClassName="gap-4 pb-10">
+            <ScrollView className="flex-1 px-4" contentContainerClassName="gap-4 pb-10" keyboardShouldPersistTaps="handled">
                 <TouchableOpacity onPress={pickImage} className="aspect-[2/1] items-center justify-center overflow-hidden rounded-lg border border-dashed border-neutral-700 bg-neutral-900">
                     {pickedImage ? <Image source={{ uri: pickedImage.uri }} className="h-full w-full" /> : <Text className="text-xs text-neutral-500">TAP TO ADD PHOTO</Text>}
                 </TouchableOpacity>
@@ -184,6 +191,6 @@ export default function ItemCreateScreen() {
                     <Controller control={control} name="address" render={({ field: { value, onChange } }) => <TextInput value={value} onChangeText={onChange} placeholder="e.g. Kyoto, Japan" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />} />
                 </View>
             </ScrollView>
-        </View>
+        </KeyboardAvoidingView>
     );
 }

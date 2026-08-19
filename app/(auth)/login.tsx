@@ -4,38 +4,32 @@ import { ApiError, NetworkError } from "../../src/lib/api/client";
 import { KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyboard, View } from "react-native";
 import { useAuth } from "../../src/lib/auth/AuthContext";
 
-export default function RegisterScreen() {
-    const { register } = useAuth();
-    const [name, setName] = useState("");
+export default function LoginScreen() {
+    const { login } = useAuth();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     async function onSubmit() {
-        if (!name.trim() || !email.trim() || !password) {
-            setError("Please fill in all fields.");
-            return;
-        }
-        if (password.length < 8) {
-            setError("Password must be at least 8 characters.");
-            return;
-        }
-        if (password !== confirmPassword) {
-            setError("Passwords do not match.");
+        if (!email.trim() || !password) {
+            setError("Please enter your email and password.");
             return;
         }
 
         setError("");
         setIsSubmitting(true);
         try {
-            await register({ name, email, password });
+            await login({ email, password });
         } catch (err) {
-            console.error("Register error:", err);
-            setError("Could not create account. That email may already be in use.");
+            if (err instanceof NetworkError) {
+                setError(err.message);
+            } else if (err instanceof ApiError) {
+                setError("Invalid email or password.");
+            } else {
+                setError("Something went wrong. Please try again.");
+            }
             setPassword("");
-            setConfirmPassword("");
         } finally {
             setIsSubmitting(false);
         }
