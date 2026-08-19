@@ -30,9 +30,11 @@ type RequestOptions = {
 export async function apiFetch<T>(path: string, options: RequestOptions = {}): Promise<T> {
     const { method = "GET", body, isMobileAuthCall = false } = options;
 
-    const headers: Record<string, string> = {
-        "Content-Type": "application/json",
-    };
+    const headers: Record<string, string> = {};
+
+    if (body !== undefined) {
+        headers["Content-Type"] = "application/json";
+    }
 
     if (isMobileAuthCall) {
         headers["X-Client"] = "mobile";
