@@ -152,17 +152,46 @@ export default function Index() {
                 <View className="flex-1 items-center justify-center">
                     <Text className="text-neutral-500">Loading...</Text>
                 </View>
-            ) : itemsQuery.isError ? (
-                <View className="flex-1 items-center justify-center px-6">
-                    <Text className="text-center text-red-400">Could not load your list. Pull down to try again.</Text>
-                </View>
-            ) : itemsQuery.data && itemsQuery.data.items.length === 0 ? (
-                <View className="flex-1 items-center justify-center gap-2 px-6">
-                    <Text className="text-lg text-neutral-100">Your list is empty</Text>
-                    <Text className="text-center text-sm text-neutral-500">Heard about a great restaurant, a trip worth taking, or a show you can't miss? Add it here so you never forget.</Text>
-                </View>
             ) : (
-                <FlatList data={itemsQuery.data?.items ?? []} keyExtractor={(item) => item.id} contentContainerClassName="gap-2.5 px-4 pb-24" refreshControl={<RefreshControl refreshing={itemsQuery.isRefetching} onRefresh={() => itemsQuery.refetch()} tintColor="#fbbf24" colors={["#fbbf24"]} progressBackgroundColor="#171717" />} renderItem={({ item }) => <ItemCard item={item} category={categoryById.get(item.categoryId)} onToggleArchive={() => toggleArchiveMutation.mutate(item)} onDelete={() => confirmDelete(item)} />} />
+                <FlatList
+                    data={itemsQuery.data?.items ?? []}
+                    keyExtractor={(item) => item.id}
+                    contentContainerClassName="flex-grow gap-2.5 px-4 pb-24"
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={itemsQuery.isRefetching}
+                            onRefresh={() => itemsQuery.refetch()}
+                            tintColor="#fbbf24"
+                            colors={["#fbbf24"]}
+                            progressBackgroundColor="#171717"
+                        />
+                    }
+                    ListEmptyComponent={
+                        <View className="flex-1 items-center justify-center gap-2 px-6 py-16">
+                            {itemsQuery.isError ? (
+                                <Text className="text-center text-red-400">
+                                    Could not load your list. Pull down to try again.
+                                </Text>
+                            ) : (
+                                <>
+                                    <Text className="text-lg text-neutral-100">Your list is empty</Text>
+                                    <Text className="text-center text-sm text-neutral-500">
+                                        Heard about a great restaurant, a trip worth taking, or a show you can't
+                                        miss? Add it here so you never forget.
+                                    </Text>
+                                </>
+                            )}
+                        </View>
+                    }
+                    renderItem={({ item }) => (
+                        <ItemCard
+                            item={item}
+                            category={categoryById.get(item.categoryId)}
+                            onToggleArchive={() => toggleArchiveMutation.mutate(item)}
+                            onDelete={() => confirmDelete(item)}
+                        />
+                    )}
+                />
             )}
 
             <TouchableOpacity onPress={() => router.push("/item-create")} className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-amber-400">
