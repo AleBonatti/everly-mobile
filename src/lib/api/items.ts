@@ -1,5 +1,5 @@
 import { apiFetch, ApiError } from "./client";
-import { createItemInputSchema, itemSchema, itemsQuerySchema, paginatedItemsSchema, type CreateItemInput, type Item, type ItemsQuery, type PaginatedItems } from "./schemas";
+import { createItemInputSchema, itemSchema, itemsQuerySchema, paginatedItemsSchema, updateItemInputSchema, type CreateItemInput, type Item, type ItemsQuery, type PaginatedItems, type UpdateItemInput } from "./schemas";
 import { getToken } from "../auth/tokenStorage";
 import { File, UploadType } from "expo-file-system";
 
@@ -50,4 +50,19 @@ export async function uploadItemImage(itemId: string, imageUri: string, mimeType
     }
 
     return itemSchema.parse(JSON.parse(result.body));
+}
+
+export async function updateItem(itemId: string, input: UpdateItemInput): Promise<Item> {
+    const parsed = updateItemInputSchema.parse(input);
+    const result = await apiFetch<unknown>(`/items/${itemId}`, {
+        method: "PATCH",
+        body: parsed,
+    });
+    return itemSchema.parse(result);
+}
+
+export async function deleteItem(itemId: string): Promise<void> {
+    await apiFetch<unknown>(`/items/${itemId}`, {
+        method: "DELETE",
+    });
 }

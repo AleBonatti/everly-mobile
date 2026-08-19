@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { FlatList, Image, Text, TouchableOpacity, View, RefreshControl } from "react-native";
+import { Alert, FlatList, Image, RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { fetchCategories } from "../src/lib/api/categories";
-import { fetchItems } from "../src/lib/api/items";
+import { deleteItem, fetchItems, updateItem } from "../src/lib/api/items";
 import type { Category, Item } from "../src/lib/api/schemas";
 import { useAuth } from "../src/lib/auth/AuthContext";
 
@@ -34,9 +34,9 @@ function ImportanceDots({ importance }: { importance: number }) {
     );
 }
 
-function ItemCard({ item, category }: { item: Item; category: Category | undefined }) {
+function ItemCard({ item, category, onToggleArchive, onDelete }: { item: Item; category: Category | undefined; onToggleArchive: () => void; onDelete: () => void }) {
     return (
-        <TouchableOpacity className="flex-row gap-3 rounded-xl border border-neutral-800 bg-neutral-900 p-2.5">
+        <TouchableOpacity onLongPress={onDelete} className="flex-row gap-3 rounded-xl border border-neutral-800 bg-neutral-900 p-2.5">
             {item.imageUrl ? (
                 <Image source={{ uri: item.imageUrl }} className="h-20 w-20 rounded-lg" />
             ) : (
@@ -56,7 +56,9 @@ function ItemCard({ item, category }: { item: Item; category: Category | undefin
                 ) : null}
                 <View className="mt-1 flex-row items-center justify-between">
                     <ImportanceDots importance={item.importance} />
-                    <Text className="text-[10px] text-neutral-500">{item.isArchived ? "Restore" : "Mark done"}</Text>
+                    <TouchableOpacity onPress={onToggleArchive} hitSlop={8}>
+                        <Text className="text-[10px] text-amber-400">{item.isArchived ? "Restore" : "Mark done"}</Text>
+                    </TouchableOpacity>
                 </View>
             </View>
         </TouchableOpacity>
@@ -67,6 +69,7 @@ export default function Index() {
     const { logout } = useAuth();
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
     const router = useRouter();
+    const queryClient = useQueryClient();
 
     const categoriesQuery = useQuery({
         queryKey: ["categories"],
@@ -80,6 +83,30 @@ export default function Index() {
                 category: selectedCategoryId ? [selectedCategoryId] : undefined,
             }),
     });
+
+    const toggleArchiveMutation = useMutation({
+        mutationFn: (item: Item) => updateItem(item.id, { isArchived: !item.isArchived }),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["items"] });
+        },
+    });
+
+    const deleteMutation = useMutation({
+        mutationFn: (itemId: string) => deleteItem(itemId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["items"] });
+        },
+        onError: (err) => {
+            console.error("Delete error:", err);
+        },
+    });
+
+    function confirmDelete(item: Item) {
+        Alert.alert("Delete item", `Delete "${item.title}"? This can't be undone.`, [
+            { text: "Cancel", style: "cancel" },
+            { text: "Delete", style: "destructive", onPress: () => deleteMutation.mutate(item.id) },
+        ]);
+    }
 
     const categoryById = useMemo(() => {
         const map = new Map<string, Category>();
@@ -135,7 +162,7 @@ export default function Index() {
                     <Text className="text-center text-sm text-neutral-500">Heard about a great restaurant, a trip worth taking, or a show you can't miss? Add it here so you never forget.</Text>
                 </View>
             ) : (
-                <FlatList data={itemsQuery.data?.items ?? []} keyExtractor={(item) => item.id} contentContainerClassName="gap-2.5 px-4 pb-24" refreshControl={<RefreshControl refreshing={itemsQuery.isRefetching} onRefresh={() => itemsQuery.refetch()} tintColor="#fbbf24" colors={["#fbbf24"]} progressBackgroundColor="#171717" />} renderItem={({ item }) => <ItemCard item={item} category={categoryById.get(item.categoryId)} />} />
+                <FlatList data={itemsQuery.data?.items ?? []} keyExtractor={(item) => item.id} contentContainerClassName="gap-2.5 px-4 pb-24" refreshControl={<RefreshControl refreshing={itemsQuery.isRefetching} onRefresh={() => itemsQuery.refetch()} tintColor="#fbbf24" colors={["#fbbf24"]} progressBackgroundColor="#171717" />} renderItem={({ item }) => <ItemCard item={item} category={categoryById.get(item.categoryId)} onToggleArchive={() => toggleArchiveMutation.mutate(item)} onDelete={() => confirmDelete(item)} />} />
             )}
 
             <TouchableOpacity onPress={() => router.push("/item-create")} className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-amber-400">
