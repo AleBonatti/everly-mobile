@@ -39,6 +39,24 @@ npx expo run:ios --device
 ```
 Requires the phone plugged in via USB (first time), Developer Mode enabled on-device (Settings → Privacy & Security → Developer Mode), and the dev certificate trusted (Settings → General → VPN & Device Management).
 
+## When a native rebuild doesn't pick up an app.json change
+
+`npx expo run:ios`/`run:android` call `expo prebuild` internally to (re)generate the native `ios/`/`android/` project folders from `app.json` + installed packages' config plugins — normally this is automatic and invisible. Try a plain rebuild first for any `app.json` change (icon, splash, bundle identifier, plugin config, permission strings):
+
+```bash
+npx expo run:ios
+```
+
+**If the change doesn't show up** (confirmed to happen with NativeWind's babel/metro setup, `expo-image-picker`'s permission strings, and the app icon/bundle identifier — this is a recurring, not hypothetical, gotcha on this project): `expo prebuild`'s normal *incremental* merge into an already-existing `ios/`/`android/` doesn't always pick up every kind of change. Force a full clean regeneration instead:
+
+```bash
+rm -rf ios android
+npx expo prebuild --clean
+npx expo run:ios
+```
+
+`ios/`/`android/` are gitignored build artifacts (nothing hand-edited lives there) — deleting and regenerating them is always safe, just slower (a full native rebuild, a few minutes) than the incremental path.
+
 ## Choosing a specific simulator device
 
 ```bash
@@ -60,12 +78,19 @@ npx expo run:android
 ```
 No physical Android device available for this project — Android Studio's emulator only (per `docs/PLANNING.md` §1/§9). Not yet set up/tested as of this doc's writing; revisit before any Android-specific QA pass.
 
-## Type-checking (no build needed)
+## Linting and type-checking (no build needed)
 
 ```bash
-npx tsc --noEmit
+npm run lint
 ```
-Fast, catches TS errors without a native rebuild. Run this after any schema/type change before bothering with a full rebuild.
+Runs `expo lint` (ESLint, `eslint-config-expo`'s flat config).
+
+```bash
+npm run typecheck
+```
+Runs `tsc --noEmit`. Fast, catches TS errors without a native rebuild.
+
+Both run automatically in CI (`.github/workflows/ci.yml`) on every PR and push to `main` — run them locally first to catch issues before pushing.
 
 ## Known noise, safe to ignore
 

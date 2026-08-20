@@ -1,6 +1,6 @@
 {
     "expo": {
-        "name": "everly-mobile",
+        "name": "Everly",
         "slug": "everly-mobile",
         "version": "1.0.0",
         "orientation": "portrait",
@@ -29,7 +29,7 @@
         "scheme": "everlymobile",
         "ios": {
             "supportsTablet": true,
-            "bundleIdentifier": "com.anonymous.everly-mobile"
+            "bundleIdentifier": "com.alebonatti.everly"
         },
         "android": {
             "adaptiveIcon": {
@@ -37,7 +37,7 @@
                 "foregroundImage": "./assets/adaptive-icon-foreground.png"
             },
             "predictiveBackGestureEnabled": false,
-            "package": "com.anonymous.everlymobile"
+            "package": "com.alebonatti.everly"
         },
         "web": {
             "favicon": "./assets/favicon.png"
