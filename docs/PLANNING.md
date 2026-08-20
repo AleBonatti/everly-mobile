@@ -214,7 +214,7 @@ The mockups define the **full eventual app**, broader than v1 — this section m
 ### Visual language
 
 - **Fonts**: `Chango` (display/logo wordmark, e.g. "Everly" in the header) + `Urbanist` (body/UI text, weights 400–800). Both loadable via `expo-font` + Google Fonts.
-- **Color system**: OKLCH throughout the mockups (e.g. background `oklch(0.15 0.01 60)`, primary accent `oklch(0.78 0.14 85)` — a warm amber/gold, text `oklch(0.92 0.01 60)`). React Native's `StyleSheet`/NativeWind don't support `oklch()` directly — convert the palette to hex/rgba equivalents once, up front, rather than per-component.
+- **Color system**: OKLCH throughout the mockups (e.g. background `oklch(0.15 0.01 60)`, primary accent `oklch(0.78 0.14 85)` — a warm amber/gold, text `oklch(0.92 0.01 60)`). React Native's `StyleSheet`/NativeWind don't support `oklch()` directly — convert the palette to hex/rgba equivalents once, up front, rather than per-component. **Confirmed background hex, 2026-08-20**: `#0e0a07`, sampled directly from the real app icon artwork (`Everly Logo-dark-bg.png`) — this is the canonical value to use everywhere `oklch(0.15 0.01 60)` appears in the mockups, once real theming/CSS work happens post-MVP (current screens approximate it with Tailwind's `neutral-950`, not this exact value yet — worth reconciling in a later polish pass).
 - **Dark theme only** in the mockups — no light-mode toggle shown; treat dark as the only mode for v1 unless that's revisited.
 - Category tag/chip colors are hue-based accents (the API's fixed 8-color palette, §2) with a translucent background + solid text, not filled blocks.
 - Rounded corners throughout (~8–12px on inputs/buttons/cards), no hard edges.

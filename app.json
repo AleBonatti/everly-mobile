@@ -1,43 +1,46 @@
 {
-  "expo": {
-    "name": "everly-mobile",
-    "slug": "everly-mobile",
-    "version": "1.0.0",
-    "orientation": "portrait",
-    "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
-    "plugins": [
-      "expo-router",
-      "expo-status-bar",
-      "expo-secure-store",
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Everly uses your photo library to add photos to your items.",
-          "cameraPermission": "Everly uses your camera to add photos to your items."
+    "expo": {
+        "name": "everly-mobile",
+        "slug": "everly-mobile",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "light",
+        "plugins": [
+            "expo-router",
+            "expo-status-bar",
+            "expo-secure-store",
+            [
+                "expo-image-picker",
+                {
+                    "photosPermission": "Everly uses your photo library to add photos to your items.",
+                    "cameraPermission": "Everly uses your camera to add photos to your items."
+                }
+            ],
+            [
+                "expo-splash-screen",
+                {
+                    "image": "./assets/icon.png",
+                    "backgroundColor": "#0e0a07",
+                    "imageWidth": 200
+                }
+            ]
+        ],
+        "scheme": "everlymobile",
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.anonymous.everly-mobile"
+        },
+        "android": {
+            "adaptiveIcon": {
+                "backgroundColor": "#0e0a07",
+                "foregroundImage": "./assets/adaptive-icon-foreground.png"
+            },
+            "predictiveBackGestureEnabled": false,
+            "package": "com.anonymous.everlymobile"
+        },
+        "web": {
+            "favicon": "./assets/favicon.png"
         }
-      ]
-    ],
-    "scheme": "everlymobile",
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.everly-mobile"
-    },
-    "android": {
-      "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      },
-      "predictiveBackGestureEnabled": false,
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ],
-      "package": "com.anonymous.everlymobile"
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     }
-  }
 }

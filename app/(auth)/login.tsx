@@ -40,7 +40,7 @@ export default function LoginScreen() {
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <View className="flex-1 items-center justify-center px-6">
                     <Text className="mb-1 text-xl text-neutral-100">Welcome back</Text>
-                    <Text className="mb-6 text-sm text-neutral-400">Log in to see your list.</Text>r
+                    <Text className="mb-6 text-sm text-neutral-400">Log in to see your list.</Text>
                     <View className="w-full max-w-sm gap-4">
                         <View className="gap-1.5">
                             <Text className="text-xs font-semibold text-neutral-400">Email</Text>
