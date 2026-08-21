@@ -49,7 +49,12 @@ export default function LoginScreen() {
                         </View>
 
                         <View className="gap-1.5">
-                            <Text className="text-xs font-semibold text-neutral-400">Password</Text>
+                            <View className="flex-row items-center justify-between">
+                                <Text className="text-xs font-semibold text-neutral-400">Password</Text>
+                                <Link href="/(auth)/forgot-password">
+                                    <Text className="text-xs text-amber-400">Forgot password?</Text>
+                                </Link>
+                            </View>
                             <TextInput value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />
                         </View>
 
