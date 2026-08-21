@@ -28,6 +28,24 @@ export const authUserWithTokenSchema = z.object({
 });
 export type AuthUserWithToken = z.infer<typeof authUserWithTokenSchema>;
 
+export const authUserSchema = z.object({
+    id: z.uuid(),
+    name: z.string(),
+    email: z.email(),
+});
+export type AuthUser = z.infer<typeof authUserSchema>;
+
+export const updateProfileInputSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+});
+export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
+
+export const changePasswordInputSchema = z.object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+});
+export type ChangePasswordInput = z.infer<typeof changePasswordInputSchema>;
+
 // Categories
 
 export const CATEGORY_COLORS = ["#ef4444", "#f97316", "#f59e0b", "#22c55e", "#14b8a6", "#3b82f6", "#a855f7", "#ec4899"] as const;

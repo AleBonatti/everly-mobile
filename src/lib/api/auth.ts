@@ -1,5 +1,5 @@
 import { apiFetch } from "./client";
-import { forgotPasswordInputSchema, type ForgotPasswordInput } from "./schemas";
+import { authUserSchema, changePasswordInputSchema, updateProfileInputSchema, type ChangePasswordInput, type UpdateProfileInput, forgotPasswordInputSchema, type ForgotPasswordInput } from "./schemas";
 
 export async function forgotPassword(input: ForgotPasswordInput): Promise<void> {
     const parsed = forgotPasswordInputSchema.parse(input);
@@ -7,5 +7,22 @@ export async function forgotPassword(input: ForgotPasswordInput): Promise<void> 
         method: "POST",
         body: parsed,
         isMobileAuthCall: true,
+    });
+}
+
+export async function updateProfile(input: UpdateProfileInput): Promise<{ id: string; name: string; email: string }> {
+    const parsed = updateProfileInputSchema.parse(input);
+    const result = await apiFetch<unknown>("/auth/me", {
+        method: "PATCH",
+        body: parsed,
+    });
+    return authUserSchema.parse(result);
+}
+
+export async function changePassword(input: ChangePasswordInput): Promise<void> {
+    const parsed = changePasswordInputSchema.parse(input);
+    await apiFetch<unknown>("/auth/change-password", {
+        method: "POST",
+        body: parsed,
     });
 }
