@@ -10,7 +10,15 @@ Written 2026-08-21, grounded in an actual audit of the mockups (`Everly Mobile A
 
 `docs/PLANNING.md` §6/§7 define the MVP precisely, and explicitly list what's deferred — but a placeholder one-line list at the bottom of that doc isn't the same as a real plan. This doc gives the deferred work the same treatment the MVP got: concrete scope, source-grounded (mockup + API audit), sequenced.
 
-**Nothing here is committed to a release order yet** — §9 groups the work; picking what to build first is a live decision, not fixed by this doc alone.
+**Nothing here is committed to a release order yet** — §2 groups the work; picking what to build first is a live decision, not fixed by this doc alone.
+
+### Follow the mockup layout, not just its feature list
+
+`docs/PLANNING.md` §7 was careful to treat `../Everly bucket list app/Everly Mobile Auth.dc.html` and `Everly Mobile.dc.html` as the **design source of truth** for the MVP screens — same rule applies here. §1 below documents *what's missing feature-wise*; when actually building any of it, go back to those two files (not this doc's prose descriptions) for the real layout: spacing, component structure, exact copy, button placement, and the specific interaction details (e.g. the filter modal's bottom-sheet slide-up behavior, the category-edit screen's swatch-picker grid, the exact four-state auth flow's screen order). This doc's bullet points are a map of *what exists*, not a substitute for opening the actual mockup file before writing a screen.
+
+Two things worth carrying over explicitly, since they're easy to lose sight of once away from `PLANNING.md` §7's own reminder:
+- **Visual language stays identical** — same dark-only theme, same `Chango`/`Urbanist` fonts, same OKLCH-derived palette (background `#0e0a07`, confirmed exact hex in `PLANNING.md` §7; accent `oklch(0.78 0.14 85)`, still only approximated with Tailwind's `neutral`/`amber` classes as of the MVP — worth reconciling to the real hex values as part of *any* new screen built from here on, not deferred forever).
+- **The mockups define the full eventual app**, so a screen's mockup markup may include mockup-only elements that don't apply once real API data is wired in (placeholder counts, prototype-only "continue" shortcuts like the reset-password flow's dev shortcut link) — cross-check against the real API contracts in `PLANNING.md` §2 the same way the MVP build did, not just copy the mockup's mock state verbatim.
 
 ---
 
