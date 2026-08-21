@@ -59,9 +59,9 @@ Confirmed by reading every mobile `src/lib/api/*.ts` file against the full `ever
 | `POST /auth/resend-verification` | Not called | Same as above |
 | `PATCH /auth/me` | Not called | Profile editing (name) |
 | `POST /auth/change-password` | Not called | Change-password, in-app settings |
-| `POST /categories` | Not called | Add category |
-| `PATCH /categories/:id` | Not called | Edit category |
-| `DELETE /categories/:id` | Not called | Delete category |
+| `POST /categories` | **Called** (Group B, done 2026-08-21) | Add category |
+| `PATCH /categories/:id` | **Called** (Group B, done 2026-08-21) | Edit category |
+| `DELETE /categories/:id` | **Called** (Group B, done 2026-08-21) | Delete category |
 
 Every items endpoint (`GET/POST/PATCH/DELETE /items`, `POST /items/:id/image`) is already fully used — items has no server-side gap, only the richer-interaction UI gaps in §1a above.
 
@@ -79,8 +79,12 @@ Screens: 4 new views under `app/(auth)/`. API: 2 unused endpoints, already exist
 - Even after that fix, **login/register still showed no visible delay on success specifically** — root cause was a different, deeper issue: `AuthContext.tsx`'s `login()`/`register()` call `setUser(...)` *inside* the function, before the promise resolves back to the screen's `onSubmit` — and `setUser` immediately triggers `RootNavigation`'s redirect-away-from-login effect in `app/_layout.tsx`. Wrapping `withMinDelay` at the screen's call site couldn't fix this, since the navigation-triggering side effect had already fired inside `login()` before the wrapper ever got a chance to delay anything. Real fix: moved `withMinDelay` *inside* `AuthContext.tsx`, wrapping the raw `apiFetch` call itself, so `setUser` (and the navigation it triggers) only fires after the minimum delay has elapsed — not wrapped redundantly at both layers. `item/[id].tsx`'s Save/Delete also needed the same pattern (wrap the whole async operation, not the individual API calls) — done via an inline immediately-invoked async function passed to `withMinDelay`.
 - `everly` web's `ResetPasswordPage.tsx` previously auto-navigated to `/login` via a "Go to log in" button on success — **not actually an auto-login** (confirmed no session cookie is set server-side by `/reset-password`), but still wrong UX for a mobile user who opened the link in their phone's browser: there's no reason to push them toward the *web* login, since the real next step is switching back to the native app themselves. Fixed to just show a final confirmation message, no button/navigation. **Same fix planned for `VerifyEmailPage.tsx`'s success state when Group F is built** — see that section.
 
-### B. Categories management
+### B. Categories management — **done, 2026-08-21**
 Screens: 2 new (list, add/edit) — likely `app/category/index.tsx` + `app/category/[id].tsx`, mirroring the existing `app/item/[id].tsx` create/edit pattern. API: 3 unused endpoints, already exist. Also needs the avatar-menu "Categories" entry point wired back in (currently omitted, per `PLANNING.md` §7). This is the one group that changes an existing screen's behavior too — once mobile can create categories, `app/item/[id].tsx`'s category picker stops being purely "select from what web created."
+
+**Built as**: `app/category/index.tsx` (list, no per-category item count — deliberately skipped, the API doesn't return one and it wasn't worth an extra full-items fetch just to show a number) and `app/category/[id].tsx` (add/edit, following the exact same `id === "new"` vs. real-UUID / cached-data-lookup pattern as `item/[id].tsx`, including `react-hook-form`'s `watch()` for a live color+name preview chip, and `withMinDelay` on both save and delete). `src/lib/api/categories.ts` gained `createCategory`/`updateCategory`/`deleteCategory`; `schemas.ts` gained the matching input schemas. The API's 409 "category still has items" delete-conflict response is handled explicitly via `ApiError`'s status field, showing a specific "move or delete those items first" message rather than a generic failure.
+
+**Also built, since it was the actual blocker to reaching these screens**: the items list header's bare "Log out" button was replaced with a proper avatar (user's initials, derived client-side from `user.name`) + dropdown menu (Categories, Log out) — matching the mockup's original design that was simplified away back in step 4 of the MVP build, before Categories existed to link to. Implemented with RN's `Modal` (`transparent`, backdrop-tap-to-close) as the idiomatic equivalent of the mockup's DOM-`ref`-based click-outside-to-close pattern, which RN has no direct equivalent for.
 
 ### C. In-app settings — profile + password
 Screens: 1 new (`app/settings.tsx` or similar). API: 2 unused endpoints, already exist. Self-contained. Lowest priority of the account-related groups — web already covers this, so the value is parity/convenience, not unlocking anything mobile-only.

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { FlatList, Image, RefreshControl, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, Modal, RefreshControl, Text, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { fetchCategories } from "../src/lib/api/categories";
 import { fetchItems, updateItem } from "../src/lib/api/items";
@@ -66,11 +66,21 @@ function ItemCard({ item, category, onToggleArchive, onPress }: { item: Item; ca
 }
 
 export default function Index() {
-    const { logout } = useAuth();
+    const { user, logout } = useAuth();
     const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
     const [isUserRefreshing, setIsUserRefreshing] = useState(false);
+    const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
     const router = useRouter();
     const queryClient = useQueryClient();
+
+    const initials = user?.name
+        ? user.name
+              .split(" ")
+              .map((part) => part[0])
+              .slice(0, 2)
+              .join("")
+              .toUpperCase()
+        : "?";
 
     const categoriesQuery = useQuery({
         queryKey: ["categories"],
@@ -115,11 +125,34 @@ export default function Index() {
                 <View className="flex-1" />
                 <Image source={require("../assets/everly-logo-header.png")} className="h-8 w-28" resizeMode="contain" />
                 <View className="flex-1 items-end">
-                    <TouchableOpacity onPress={logout} className="rounded-lg bg-neutral-800 px-3 py-2">
-                        <Text className="text-xs text-neutral-100">Log out</Text>
+                    <TouchableOpacity onPress={() => setIsAvatarMenuOpen(true)} className="h-9 w-9 items-center justify-center rounded-full bg-amber-400">
+                        <Text className="text-xs font-bold text-neutral-950">{initials}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
+
+            <Modal visible={isAvatarMenuOpen} transparent animationType="fade" onRequestClose={() => setIsAvatarMenuOpen(false)}>
+                <TouchableOpacity activeOpacity={1} onPress={() => setIsAvatarMenuOpen(false)} className="flex-1 bg-black/40">
+                    <View className="absolute right-4 top-16 w-40 overflow-hidden rounded-xl border border-neutral-700 bg-neutral-800">
+                        <TouchableOpacity
+                            onPress={() => {
+                                setIsAvatarMenuOpen(false);
+                                router.push("/category");
+                            }}
+                            className="border-b border-neutral-700 px-4 py-3">
+                            <Text className="text-sm text-neutral-200">Categories</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => {
+                                setIsAvatarMenuOpen(false);
+                                logout();
+                            }}
+                            className="px-4 py-3">
+                            <Text className="text-sm text-red-400">Log out</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
 
             <View className="mb-2">
                 <FlatList
