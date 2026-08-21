@@ -4,6 +4,8 @@ The native mobile client for Everly ("a list of things worth doing"), built with
 
 Written for someone with zero native app experience but strong TS/React/Node background — explanations lean on that existing knowledge rather than starting from scratch on JS/React concepts. Same spirit as `everly`'s own planning docs: decisions are made and justified here, with open questions called out explicitly.
 
+**This doc covers v1 (the MVP) only.** Work beyond v1 — categories management, search, forgot-password, the interactive map picker, and everything else deliberately deferred below — is scoped separately in [`docs/POST_MVP.md`](./POST_MVP.md), so this doc doesn't grow past its original purpose.
+
 ---
 
 ## 0. Background: why this is a standalone repo

@@ -22,6 +22,8 @@ The authoritative planning doc lives in **this repo**: [`docs/PLANNING.md`](docs
 - Web → mobile feature-parity notes (§8)
 - The build order this project follows (§9)
 
+`docs/PLANNING.md` covers v1 (the MVP) only. Work beyond that — categories management, search, forgot-password, the interactive map picker, etc. — is scoped in [`docs/POST_MVP.md`](docs/POST_MVP.md).
+
 For exact build/run commands (Simulator vs. physical device, choosing a specific simulator, etc.), see [`docs/BUILD_COMMANDS.md`](docs/BUILD_COMMANDS.md).
 
 ## Shared types
