@@ -53,8 +53,8 @@ Confirmed by reading every mobile `src/lib/api/*.ts` file against the full `ever
 | Endpoint | Status | Feature it unlocks |
 |---|---|---|
 | `POST /auth/logout` | Not called (mobile logout only clears the local token) | Cosmetic gap — harmless, but worth calling for consistency with web |
-| `POST /auth/forgot-password` | Not called | Forgot-password flow |
-| `POST /auth/reset-password` | Not called | Reset-password flow |
+| `POST /auth/forgot-password` | **Called** (Group A, done 2026-08-21) | Forgot-password flow |
+| `POST /auth/reset-password` | Called from `everly` web (unchanged) — not mobile | Reset-password flow — mobile never calls this directly, see Group A's note on why |
 | `POST /auth/verify-email` | Not called | Email verification (not even represented in the mobile mockup — see §2) |
 | `POST /auth/resend-verification` | Not called | Same as above |
 | `PATCH /auth/me` | Not called | Profile editing (name) |
@@ -69,8 +69,15 @@ Every items endpoint (`GET/POST/PATCH/DELETE /items`, `POST /items/:id/image`) i
 
 ## 2. Feature groups (not yet sequenced into a release order)
 
-### A. Auth completeness — forgot/reset password
+### A. Auth completeness — forgot/reset password — **done, 2026-08-21**
 Screens: 4 new views under `app/(auth)/`. API: 2 unused endpoints, already exist. Self-contained, no dependency on any other group. Mirrors the auth-screen pattern already established (login/register) closely enough that it's a natural next step technically, even though it's not high-visibility.
+
+**Built as**: `app/(auth)/forgot-password.tsx` (one screen, not two — combines the "request" and "check your inbox" mockup states as one component's internal `isSent` boolean, matching the mockup's own state-machine treatment of them as a toggle rather than separate navigable routes), a "Forgot password?" link added to `login.tsx`, and `src/lib/api/auth.ts` (new file, `forgotPassword()`) + a `forgotPasswordInputSchema` addition to `schemas.ts`. Screens 3+4 (set-new-password, password-updated) were **not** built natively in mobile — same reasoning as Group F: the emailed reset link opens the phone's browser, not the native app (no Universal Links infrastructure), so those two screens are handled by `everly` web's existing `ResetPasswordPage.tsx` instead, which already worked correctly and needed only a small UX fix (see below).
+
+**Real bugs found and fixed along the way**:
+- `withMinDelay` (new file, `src/lib/withMinDelay.ts`) — added to prevent instant-response times leaking whether the security-preserving "always show success" forgot-password message (server never reveals if an email exists — same enumeration-prevention pattern as web) is exploitable via response-timing side-channel, and generally to avoid jarring instant UI flips. First version used `Promise.all`, which fails fast on rejection — meaning the delay only applied on *success*, not on error paths (found via manual testing with a wrong password). Fixed with `Promise.allSettled` + manual re-throw of the original rejection reason.
+- Even after that fix, **login/register still showed no visible delay on success specifically** — root cause was a different, deeper issue: `AuthContext.tsx`'s `login()`/`register()` call `setUser(...)` *inside* the function, before the promise resolves back to the screen's `onSubmit` — and `setUser` immediately triggers `RootNavigation`'s redirect-away-from-login effect in `app/_layout.tsx`. Wrapping `withMinDelay` at the screen's call site couldn't fix this, since the navigation-triggering side effect had already fired inside `login()` before the wrapper ever got a chance to delay anything. Real fix: moved `withMinDelay` *inside* `AuthContext.tsx`, wrapping the raw `apiFetch` call itself, so `setUser` (and the navigation it triggers) only fires after the minimum delay has elapsed — not wrapped redundantly at both layers. `item/[id].tsx`'s Save/Delete also needed the same pattern (wrap the whole async operation, not the individual API calls) — done via an inline immediately-invoked async function passed to `withMinDelay`.
+- `everly` web's `ResetPasswordPage.tsx` previously auto-navigated to `/login` via a "Go to log in" button on success — **not actually an auto-login** (confirmed no session cookie is set server-side by `/reset-password`), but still wrong UX for a mobile user who opened the link in their phone's browser: there's no reason to push them toward the *web* login, since the real next step is switching back to the native app themselves. Fixed to just show a final confirmation message, no button/navigation. **Same fix planned for `VerifyEmailPage.tsx`'s success state when Group F is built** — see that section.
 
 ### B. Categories management
 Screens: 2 new (list, add/edit) — likely `app/category/index.tsx` + `app/category/[id].tsx`, mirroring the existing `app/item/[id].tsx` create/edit pattern. API: 3 unused endpoints, already exist. Also needs the avatar-menu "Categories" entry point wired back in (currently omitted, per `PLANNING.md` §7). This is the one group that changes an existing screen's behavior too — once mobile can create categories, `app/item/[id].tsx`'s category picker stops being purely "select from what web created."
