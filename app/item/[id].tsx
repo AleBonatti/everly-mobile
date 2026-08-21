@@ -4,24 +4,14 @@ import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import {
-    ActivityIndicator,
-    Alert,
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from "react-native";
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { z } from "zod";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { fetchCategories } from "../../src/lib/api/categories";
 import { geocodeAddress } from "../../src/lib/api/geocoding";
 import { createItem, deleteItem, updateItem, uploadItemImage } from "../../src/lib/api/items";
 import type { Item, PaginatedItems } from "../../src/lib/api/schemas";
+import { withMinDelay } from "../../src/lib/withMinDelay";
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -90,20 +80,14 @@ export default function ItemEditScreen() {
     }
 
     async function launchPicker(source: "camera" | "library") {
-        const permission =
-            source === "camera"
-                ? await ImagePicker.requestCameraPermissionsAsync()
-                : await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const permission = source === "camera" ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
 
         if (!permission.granted) {
             Alert.alert("Permission needed", "Please allow access to continue.");
             return;
         }
 
-        const result =
-            source === "camera"
-                ? await ImagePicker.launchCameraAsync({ quality: 0.7 })
-                : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.7 });
+        const result = source === "camera" ? await ImagePicker.launchCameraAsync({ quality: 0.7 }) : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.7 });
 
         if (!result.canceled && result.assets[0]) {
             const context = ImageManipulator.manipulate(result.assets[0].uri);
@@ -119,34 +103,38 @@ export default function ItemEditScreen() {
     async function onSubmit(values: FormValues) {
         setIsSaving(true);
         try {
-            let latitude: number | undefined;
-            let longitude: number | undefined;
-            let locationLabel: string | undefined;
+            await withMinDelay(
+                (async () => {
+                    let latitude: number | undefined;
+                    let longitude: number | undefined;
+                    let locationLabel: string | undefined;
 
-            if (values.address && values.address.trim()) {
-                const geocoded = await geocodeAddress(values.address);
-                if (geocoded) {
-                    latitude = geocoded.latitude;
-                    longitude = geocoded.longitude;
-                    locationLabel = values.address;
-                }
-            }
+                    if (values.address && values.address.trim()) {
+                        const geocoded = await geocodeAddress(values.address);
+                        if (geocoded) {
+                            latitude = geocoded.latitude;
+                            longitude = geocoded.longitude;
+                            locationLabel = values.address;
+                        }
+                    }
 
-            const payload = {
-                title: values.title,
-                description: values.description || undefined,
-                categoryId: values.categoryId,
-                importance: values.importance,
-                latitude,
-                longitude,
-                locationLabel,
-            };
+                    const payload = {
+                        title: values.title,
+                        description: values.description || undefined,
+                        categoryId: values.categoryId,
+                        importance: values.importance,
+                        latitude,
+                        longitude,
+                        locationLabel,
+                    };
 
-            const savedItem = isEditing ? await updateItem(id, payload) : await createItem(payload);
+                    const savedItem = isEditing ? await updateItem(id, payload) : await createItem(payload);
 
-            if (pickedImage) {
-                await uploadItemImage(savedItem.id, pickedImage.uri, pickedImage.mimeType);
-            }
+                    if (pickedImage) {
+                        await uploadItemImage(savedItem.id, pickedImage.uri, pickedImage.mimeType);
+                    }
+                })(),
+            );
 
             router.back();
             await queryClient.invalidateQueries({ queryKey: ["items"] });
@@ -168,7 +156,7 @@ export default function ItemEditScreen() {
     async function onDelete() {
         setIsDeleting(true);
         try {
-            await deleteItem(id);
+            await withMinDelay(deleteItem(id));
             router.back();
             await queryClient.invalidateQueries({ queryKey: ["items"] });
         } catch (err) {
@@ -180,10 +168,7 @@ export default function ItemEditScreen() {
     }
 
     return (
-        <KeyboardAvoidingView
-            behavior={Platform.OS === "ios" ? "padding" : "height"}
-            className="flex-1 bg-neutral-950 pt-16"
-        >
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-neutral-950 pt-16">
             <View className="flex-row items-center justify-between px-4 pb-4">
                 <TouchableOpacity onPress={() => router.back()}>
                     <Text className="text-neutral-400">Cancel</Text>
@@ -195,54 +180,19 @@ export default function ItemEditScreen() {
             </View>
 
             <ScrollView className="flex-1 px-4" contentContainerClassName="gap-4 pb-10" keyboardShouldPersistTaps="handled">
-                <TouchableOpacity
-                    onPress={pickImage}
-                    className="aspect-[2/1] items-center justify-center overflow-hidden rounded-lg border border-dashed border-neutral-700 bg-neutral-900"
-                >
-                    {pickedImage ? (
-                        <Image source={{ uri: pickedImage.uri }} className="h-full w-full" />
-                    ) : existingItem?.imageUrl ? (
-                        <Image source={{ uri: existingItem.imageUrl }} className="h-full w-full" />
-                    ) : (
-                        <Text className="text-xs text-neutral-500">TAP TO ADD PHOTO</Text>
-                    )}
+                <TouchableOpacity onPress={pickImage} className="aspect-[2/1] items-center justify-center overflow-hidden rounded-lg border border-dashed border-neutral-700 bg-neutral-900">
+                    {pickedImage ? <Image source={{ uri: pickedImage.uri }} className="h-full w-full" /> : existingItem?.imageUrl ? <Image source={{ uri: existingItem.imageUrl }} className="h-full w-full" /> : <Text className="text-xs text-neutral-500">TAP TO ADD PHOTO</Text>}
                 </TouchableOpacity>
 
                 <View className="gap-1.5">
                     <Text className="text-xs font-semibold text-neutral-400">Title</Text>
-                    <Controller
-                        control={control}
-                        name="title"
-                        render={({ field: { value, onChange } }) => (
-                            <TextInput
-                                value={value}
-                                onChangeText={onChange}
-                                placeholder="e.g. Try the tasting menu at Lumen"
-                                placeholderTextColor="#71717a"
-                                className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100"
-                            />
-                        )}
-                    />
+                    <Controller control={control} name="title" render={({ field: { value, onChange } }) => <TextInput value={value} onChangeText={onChange} placeholder="e.g. Try the tasting menu at Lumen" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />} />
                     {errors.title ? <Text className="text-xs text-red-400">{errors.title.message}</Text> : null}
                 </View>
 
                 <View className="gap-1.5">
                     <Text className="text-xs font-semibold text-neutral-400">Description</Text>
-                    <Controller
-                        control={control}
-                        name="description"
-                        render={({ field: { value, onChange } }) => (
-                            <TextInput
-                                value={value}
-                                onChangeText={onChange}
-                                placeholder="Why is this worth doing?"
-                                placeholderTextColor="#71717a"
-                                multiline
-                                numberOfLines={3}
-                                className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100"
-                            />
-                        )}
-                    />
+                    <Controller control={control} name="description" render={({ field: { value, onChange } }) => <TextInput value={value} onChangeText={onChange} placeholder="Why is this worth doing?" placeholderTextColor="#71717a" multiline numberOfLines={3} className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />} />
                 </View>
 
                 <View className="gap-2">
@@ -253,11 +203,7 @@ export default function ItemEditScreen() {
                         render={({ field: { value, onChange } }) => (
                             <View className="flex-row flex-wrap gap-2">
                                 {(categoriesQuery.data ?? []).map((category) => (
-                                    <TouchableOpacity
-                                        key={category.id}
-                                        onPress={() => onChange(category.id)}
-                                        className={`rounded-lg border px-3 py-2 ${value === category.id ? "border-amber-400 bg-amber-400/20" : "border-neutral-700 bg-neutral-900"}`}
-                                    >
+                                    <TouchableOpacity key={category.id} onPress={() => onChange(category.id)} className={`rounded-lg border px-3 py-2 ${value === category.id ? "border-amber-400 bg-amber-400/20" : "border-neutral-700 bg-neutral-900"}`}>
                                         <Text className={value === category.id ? "text-amber-400" : "text-neutral-400"}>{category.name}</Text>
                                     </TouchableOpacity>
                                 ))}
@@ -286,19 +232,7 @@ export default function ItemEditScreen() {
 
                 <View className="gap-1.5">
                     <Text className="text-xs font-semibold text-neutral-400">Location (optional)</Text>
-                    <Controller
-                        control={control}
-                        name="address"
-                        render={({ field: { value, onChange } }) => (
-                            <TextInput
-                                value={value}
-                                onChangeText={onChange}
-                                placeholder="e.g. Kyoto, Japan"
-                                placeholderTextColor="#71717a"
-                                className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100"
-                            />
-                        )}
-                    />
+                    <Controller control={control} name="address" render={({ field: { value, onChange } }) => <TextInput value={value} onChangeText={onChange} placeholder="e.g. Kyoto, Japan" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />} />
                 </View>
 
                 {isEditing ? (

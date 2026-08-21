@@ -15,6 +15,11 @@ export const loginInputSchema = z.object({
 });
 export type LoginInput = z.infer<typeof loginInputSchema>;
 
+export const forgotPasswordInputSchema = z.object({
+    email: z.email().toLowerCase(),
+});
+export type ForgotPasswordInput = z.infer<typeof forgotPasswordInputSchema>;
+
 export const authUserWithTokenSchema = z.object({
     id: z.uuid(),
     name: z.string(),

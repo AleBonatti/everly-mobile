@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { apiFetch, ApiError } from "../api/client";
 import { authUserWithTokenSchema, loginInputSchema, registerInputSchema, type LoginInput, type RegisterInput } from "../api/schemas";
 import { clearToken, getToken, setToken } from "./tokenStorage";
+import { withMinDelay } from "../withMinDelay";
 
 type AuthUser = {
     id: string;
@@ -47,11 +48,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function login(input: LoginInput) {
         const parsed = loginInputSchema.parse(input);
-        const result = await apiFetch<unknown>("/auth/login", {
-            method: "POST",
-            body: parsed,
-            isMobileAuthCall: true,
-        });
+        const result = await withMinDelay(
+            apiFetch<unknown>("/auth/login", {
+                method: "POST",
+                body: parsed,
+                isMobileAuthCall: true,
+            }),
+        );
         const authUser = authUserWithTokenSchema.parse(result);
 
         if (!authUser.token) {
@@ -64,11 +67,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     async function register(input: RegisterInput) {
         const parsed = registerInputSchema.parse(input);
-        const result = await apiFetch<unknown>("/auth/register", {
-            method: "POST",
-            body: parsed,
-            isMobileAuthCall: true,
-        });
+        const result = await withMinDelay(
+            apiFetch<unknown>("/auth/register", {
+                method: "POST",
+                body: parsed,
+                isMobileAuthCall: true,
+            }),
+        );
         const authUser = authUserWithTokenSchema.parse(result);
 
         if (!authUser.token) {
