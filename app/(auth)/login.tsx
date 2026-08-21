@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "expo-router";
 import { ApiError, NetworkError } from "../../src/lib/api/client";
-import { KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyboard, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyboard, View } from "react-native";
 import { useAuth } from "../../src/lib/auth/AuthContext";
 
 export default function LoginScreen() {
@@ -39,6 +39,7 @@ export default function LoginScreen() {
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-neutral-950">
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <View className="flex-1 items-center justify-center px-6">
+                    <Image source={require("../../assets/everly-logo.png")} className="mb-8 h-16 w-40" resizeMode="contain" />
                     <Text className="mb-1 text-xl text-neutral-100">Welcome back</Text>
                     <Text className="mb-6 text-sm text-neutral-400">Log in to see your list.</Text>
                     <View className="w-full max-w-sm gap-4">

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "expo-router";
-import { KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyboard, View } from "react-native";
+import { Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyboard, View } from "react-native";
 import { useAuth } from "../../src/lib/auth/AuthContext";
 
 export default function RegisterScreen() {
@@ -44,6 +44,7 @@ export default function RegisterScreen() {
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-neutral-950">
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <View className="flex-1 items-center justify-center px-6">
+                    <Image source={require("../../assets/everly-logo.png")} className="mb-8 h-16 w-40" resizeMode="contain" />
                     <Text className="mb-1 text-xl text-neutral-100">Create your account</Text>
                     <Text className="mb-6 text-sm text-neutral-400">Start your list of things worth doing.</Text>
 

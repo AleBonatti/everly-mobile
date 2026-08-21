@@ -111,14 +111,14 @@ export default function Index() {
 
     return (
         <View className="flex-1 bg-neutral-950 pt-16">
-            <View className="flex-row items-center justify-between px-4 pb-3">
-                <View>
-                    <Text className="text-2xl text-neutral-100">Everly</Text>
-                    <Text className="text-[9px] italic font-semibold uppercase tracking-wide text-amber-400">A list of things worth doing</Text>
+            <View className="flex-row items-center px-4 pb-3">
+                <View className="flex-1" />
+                <Image source={require("../assets/everly-logo-header.png")} className="h-8 w-28" resizeMode="contain" />
+                <View className="flex-1 items-end">
+                    <TouchableOpacity onPress={logout} className="rounded-lg bg-neutral-800 px-3 py-2">
+                        <Text className="text-xs text-neutral-100">Log out</Text>
+                    </TouchableOpacity>
                 </View>
-                <TouchableOpacity onPress={logout} className="rounded-lg bg-neutral-800 px-3 py-2">
-                    <Text className="text-xs text-neutral-100">Log out</Text>
-                </TouchableOpacity>
             </View>
 
             <View className="mb-2">
