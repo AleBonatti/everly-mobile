@@ -139,6 +139,21 @@ React Native's `fetch` has no cookie jar — there's no automatic `Set-Cookie` p
 
 ## 4. Development, debugging, testing
 
+### Branching — Git Flow, adopted 2026-08-21
+
+This repo uses [Git Flow](https://danielkummer.github.io/git-flow-cheatsheet/) (`git flow init` already run — `main`/`develop` as the two long-lived branches, standard `feature/`/`release/`/`hotfix/` prefixes). **Decided: full Git Flow, not a loose approximation** — `main` only advances via finished `release/` branches (tagged versions), not after every merged feature. `develop` is the actual integration branch day-to-day.
+
+```
+git flow feature start <name>     # branches from develop
+# ...work, commit...
+git flow feature finish <name>    # merges back into develop, deletes the feature branch
+
+git flow release start <version>  # when ready to actually ship
+git flow release finish <version> # merges into BOTH main and develop, tags the version
+```
+
+**Note on pre-2026-08-21 history**: work before this decision (MVP steps 1–9, plus post-MVP Groups A and B) was branched directly off `main` and merged straight back into it — no `develop` branch existed yet. `develop` was created at that point, level with `main`'s tip, so there's no divergence to reconcile; Git Flow just governs everything from here forward.
+
 ### Local loop
 
 1. `npx expo start` runs Metro and prints a QR code.
