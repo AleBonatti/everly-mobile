@@ -89,8 +89,14 @@ Screens: 2 new (list, add/edit) — likely `app/category/index.tsx` + `app/categ
 ### C. In-app settings — profile + password
 Screens: 1 new (`app/settings.tsx` or similar). API: 2 unused endpoints, already exist. Self-contained. Lowest priority of the account-related groups — web already covers this, so the value is parity/convenience, not unlocking anything mobile-only.
 
-### D. Items list — richer browsing
+### D. Items list — richer browsing — **done, 2026-08-21**
 Search, filter modal (multi-select + archived toggle), grid/list toggle, sort menu. All client-side UI work against the *existing* `GET /items` endpoint, which already supports `q`, `category[]`, `archived`, `sort` (confirmed in `itemsQuerySchema` — the API was already built for this, mobile just doesn't expose it yet). No new backend work. Highest-value, lowest-new-surface-area group — every other group needs at least one new screen; this one is entirely inside `app/index.tsx`.
+
+**Built as**: search input added to the header (`itemsQuery`'s key/params now include `q`), the old single-select category-chip row replaced with a bottom-sheet `Modal` filter panel (multi-select categories via a checkbox-style toggle list + a "Show archived" on/off control — simplified from the mockup's animated sliding-knob switch, a deliberate scope cut, real switch styling left for Group H), a sort menu (Newest/Most important, `Modal`-free small popover positioned above its trigger), and grid/list view toggle with two separate card components (`ItemListCard`, `ItemGridCard`) — **defaults to grid**, matching the mockup's actual default (confirmed by re-reading the mockup source, not assumed). The floating "+" button moved into a proper bottom toolbar alongside Filters/Sort/Grid-toggle, matching the mockup's layout instead of floating alone.
+
+**Real RN constraint hit**: `FlatList` doesn't support changing `numColumns` on an already-mounted list — throws if you flip between 1 and 2 columns live. Fixed with `key={displayMode}` on the `FlatList`, forcing a full remount whenever list/grid mode changes — the standard, correct workaround for this specific limitation, not a hack.
+
+Icons throughout use plain Unicode characters (not SVGs matching the mockup) — a deliberate placeholder, revisit as part of Group H if they read as too plain once the real color system is in place.
 
 ### E. Interactive map / location picker
 The one group requiring a **new native dependency** (`react-native-maps`, possibly `expo-location`) — a real, deliberate re-scoping of `PLANNING.md` §1's dependency set, not just new screens. **Decided 2026-08-21: deferred to its own dedicated planning pass** when picked up (a mini version of this same audit-then-plan exercise), not folded silently into a "add a map" checklist item — don't start building this from this doc's bullet alone.

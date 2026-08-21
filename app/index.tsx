@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { FlatList, Image, Modal, RefreshControl, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, Modal, RefreshControl, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { fetchCategories } from "../src/lib/api/categories";
 import { fetchItems, updateItem } from "../src/lib/api/items";
@@ -22,6 +22,11 @@ function categoryTextClass(color: string): string {
     return CATEGORY_COLOR_TEXT[color] ?? "text-neutral-400";
 }
 
+const SORT_OPTIONS = [
+    { value: "newest" as const, label: "Newest first" },
+    { value: "importance" as const, label: "Most important" },
+];
+
 function ImportanceDots({ importance }: { importance: number }) {
     return (
         <View className="flex-row gap-0.5">
@@ -34,7 +39,7 @@ function ImportanceDots({ importance }: { importance: number }) {
     );
 }
 
-function ItemCard({ item, category, onToggleArchive, onPress }: { item: Item; category: Category | undefined; onToggleArchive: () => void; onPress: () => void }) {
+function ItemListCard({ item, category, onToggleArchive, onPress }: { item: Item; category: Category | undefined; onToggleArchive: () => void; onPress: () => void }) {
     return (
         <TouchableOpacity onPress={onPress} className="flex-row gap-3 rounded-xl border border-neutral-800 bg-neutral-900 p-2.5">
             {item.imageUrl ? (
@@ -65,13 +70,44 @@ function ItemCard({ item, category, onToggleArchive, onPress }: { item: Item; ca
     );
 }
 
+function ItemGridCard({ item, category, onToggleArchive, onPress }: { item: Item; category: Category | undefined; onToggleArchive: () => void; onPress: () => void }) {
+    return (
+        <TouchableOpacity onPress={onPress} className="flex-1 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
+            {item.imageUrl ? (
+                <Image source={{ uri: item.imageUrl }} className="aspect-square w-full" />
+            ) : (
+                <View className="aspect-square w-full items-center justify-center bg-neutral-800">
+                    <Text className={`text-[8px] font-semibold uppercase ${categoryTextClass(category?.color ?? "")}`}>{category?.name ?? "Uncategorized"}</Text>
+                </View>
+            )}
+            <View className="gap-1 p-2.5">
+                <Text numberOfLines={1} className="text-xs font-semibold text-neutral-100">
+                    {item.title}
+                </Text>
+                <View className="flex-row items-center justify-between">
+                    <ImportanceDots importance={item.importance} />
+                    <TouchableOpacity onPress={onToggleArchive} hitSlop={8}>
+                        <Text className="text-[9px] text-amber-400">{item.isArchived ? "Restore" : "Mark done"}</Text>
+                    </TouchableOpacity>
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+}
+
 export default function Index() {
     const { user, logout } = useAuth();
-    const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(null);
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
+    const [showArchived, setShowArchived] = useState(false);
+    const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
     const [isUserRefreshing, setIsUserRefreshing] = useState(false);
     const [isAvatarMenuOpen, setIsAvatarMenuOpen] = useState(false);
+    const [search, setSearch] = useState("");
     const router = useRouter();
     const queryClient = useQueryClient();
+    const [sort, setSort] = useState<"newest" | "importance">("newest");
+    const [displayMode, setDisplayMode] = useState<"list" | "grid">("grid");
+    const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
 
     const initials = user?.name
         ? user.name
@@ -88,10 +124,13 @@ export default function Index() {
     });
 
     const itemsQuery = useQuery({
-        queryKey: ["items", selectedCategoryId],
+        queryKey: ["items", selectedCategoryIds, showArchived, sort, search],
         queryFn: () =>
             fetchItems({
-                category: selectedCategoryId ? [selectedCategoryId] : undefined,
+                category: selectedCategoryIds.length > 0 ? selectedCategoryIds : undefined,
+                archived: showArchived,
+                sort,
+                q: search.trim() || undefined,
             }),
     });
 
@@ -119,6 +158,12 @@ export default function Index() {
         return map;
     }, [categoriesQuery.data]);
 
+    function toggleCategoryFilter(categoryId: string) {
+        setSelectedCategoryIds((current) => (current.includes(categoryId) ? current.filter((id) => id !== categoryId) : [...current, categoryId]));
+    }
+
+    const hasActiveFilters = selectedCategoryIds.length > 0 || showArchived;
+
     return (
         <View className="flex-1 bg-neutral-950 pt-16">
             <View className="flex-row items-center px-4 pb-3">
@@ -128,6 +173,12 @@ export default function Index() {
                     <TouchableOpacity onPress={() => setIsAvatarMenuOpen(true)} className="h-9 w-9 items-center justify-center rounded-full bg-amber-400">
                         <Text className="text-xs font-bold text-neutral-950">{initials}</Text>
                     </TouchableOpacity>
+                </View>
+            </View>
+
+            <View className="px-4 pb-3">
+                <View className="flex-row items-center gap-2 rounded-full bg-neutral-900 px-3.5 py-2.5">
+                    <TextInput value={search} onChangeText={setSearch} placeholder="Search your list..." placeholderTextColor="#71717a" className="flex-1 text-sm text-neutral-300" />
                 </View>
             </View>
 
@@ -154,25 +205,42 @@ export default function Index() {
                 </TouchableOpacity>
             </Modal>
 
-            <View className="mb-2">
-                <FlatList
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerClassName="gap-2 px-4"
-                    data={categoriesQuery.data ?? []}
-                    keyExtractor={(category) => category.id}
-                    ListHeaderComponent={
-                        <TouchableOpacity onPress={() => setSelectedCategoryId(null)} className={`rounded-lg px-3 py-2 ${selectedCategoryId === null ? "bg-amber-400" : "bg-neutral-800"}`}>
-                            <Text className={selectedCategoryId === null ? "text-xs font-semibold text-neutral-950" : "text-xs text-neutral-300"}>All</Text>
-                        </TouchableOpacity>
-                    }
-                    renderItem={({ item: category }) => (
-                        <TouchableOpacity onPress={() => setSelectedCategoryId(category.id)} className={`ml-2 rounded-lg px-3 py-2 ${selectedCategoryId === category.id ? "bg-amber-400" : "bg-neutral-800"}`}>
-                            <Text className={selectedCategoryId === category.id ? "text-xs font-semibold text-neutral-950" : "text-xs text-neutral-300"}>{category.name}</Text>
-                        </TouchableOpacity>
-                    )}
-                />
-            </View>
+            <Modal visible={isFilterModalOpen} transparent animationType="fade" onRequestClose={() => setIsFilterModalOpen(false)}>
+                <TouchableOpacity activeOpacity={1} onPress={() => setIsFilterModalOpen(false)} className="flex-1 justify-end bg-black/50">
+                    <TouchableOpacity activeOpacity={1} className="gap-4 rounded-t-2xl bg-neutral-900 px-4 pb-9 pt-5">
+                        <View className="flex-row items-center justify-between">
+                            <Text className="text-base font-bold text-neutral-100">Filters</Text>
+                            <TouchableOpacity onPress={() => setIsFilterModalOpen(false)}>
+                                <Text className="text-sm font-semibold text-amber-400">Done</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <View className="gap-1">
+                            <Text className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Categories</Text>
+                            <TouchableOpacity onPress={() => setSelectedCategoryIds([])} className="flex-row items-center gap-2.5 py-2">
+                                <Text className={selectedCategoryIds.length === 0 ? "text-amber-400" : "text-neutral-600"}>{selectedCategoryIds.length === 0 ? "✓" : "○"}</Text>
+                                <Text className="text-sm text-neutral-200">All categories</Text>
+                            </TouchableOpacity>
+                            {(categoriesQuery.data ?? []).map((category) => {
+                                const active = selectedCategoryIds.includes(category.id);
+                                return (
+                                    <TouchableOpacity key={category.id} onPress={() => toggleCategoryFilter(category.id)} className="flex-row items-center gap-2.5 py-2">
+                                        <Text className={active ? "text-amber-400" : "text-neutral-600"}>{active ? "✓" : "○"}</Text>
+                                        <Text className="text-sm text-neutral-200">{category.name}</Text>
+                                    </TouchableOpacity>
+                                );
+                            })}
+                        </View>
+
+                        <View className="flex-row items-center justify-between border-t border-neutral-700 pt-3.5">
+                            <Text className="text-sm text-neutral-200">Show archived</Text>
+                            <TouchableOpacity onPress={() => setShowArchived((current) => !current)} className={`rounded-full px-3 py-1.5 ${showArchived ? "bg-amber-400" : "bg-neutral-700"}`}>
+                                <Text className={showArchived ? "text-xs font-semibold text-neutral-950" : "text-xs text-neutral-300"}>{showArchived ? "On" : "Off"}</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
 
             {itemsQuery.isLoading ? (
                 <View className="flex-1 items-center justify-center">
@@ -180,9 +248,12 @@ export default function Index() {
                 </View>
             ) : (
                 <FlatList
+                    key={displayMode}
                     data={itemsQuery.data?.items ?? []}
                     keyExtractor={(item) => item.id}
-                    contentContainerClassName="flex-grow gap-2.5 px-4 pb-24"
+                    numColumns={displayMode === "grid" ? 2 : 1}
+                    columnWrapperClassName={displayMode === "grid" ? "gap-2.5" : undefined}
+                    contentContainerClassName="flex-grow gap-2.5 px-4 pb-28"
                     refreshControl={<RefreshControl refreshing={isUserRefreshing} onRefresh={handlePullToRefresh} tintColor="#fbbf24" colors={["#fbbf24"]} progressBackgroundColor="#171717" />}
                     ListEmptyComponent={
                         <View className="flex-1 items-center justify-center gap-2 px-6 py-16">
@@ -196,13 +267,47 @@ export default function Index() {
                             )}
                         </View>
                     }
-                    renderItem={({ item }) => <ItemCard item={item} category={categoryById.get(item.categoryId)} onToggleArchive={() => toggleArchiveMutation.mutate(item)} onPress={() => router.push(`/item/${item.id}`)} />}
+                    renderItem={({ item }) => (displayMode === "grid" ? <ItemGridCard item={item} category={categoryById.get(item.categoryId)} onToggleArchive={() => toggleArchiveMutation.mutate(item)} onPress={() => router.push(`/item/${item.id}`)} /> : <ItemListCard item={item} category={categoryById.get(item.categoryId)} onToggleArchive={() => toggleArchiveMutation.mutate(item)} onPress={() => router.push(`/item/${item.id}`)} />)}
                 />
             )}
 
-            <TouchableOpacity testID="add-item-button" onPress={() => router.push("/item/new")} className="absolute bottom-8 right-6 h-14 w-14 items-center justify-center rounded-full bg-amber-400">
-                <Text className="text-2xl font-semibold text-neutral-950">+</Text>
-            </TouchableOpacity>
+            <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-between gap-2.5 rounded-t-xl bg-neutral-900/90 px-4 pb-8 pt-3.5">
+                <View className="flex-row items-center gap-2">
+                    <TouchableOpacity onPress={() => setIsFilterModalOpen(true)} className={`rounded-lg px-3 py-2 ${hasActiveFilters ? "bg-amber-400" : "bg-neutral-800"}`}>
+                        <Text className={hasActiveFilters ? "text-xs font-semibold text-neutral-950" : "text-xs text-neutral-300"}>Filters</Text>
+                    </TouchableOpacity>
+
+                    <View>
+                        <TouchableOpacity onPress={() => setIsSortMenuOpen((current) => !current)} className="rounded-lg bg-neutral-800 px-3 py-2">
+                            <Text className="text-xs text-neutral-300">Sort</Text>
+                        </TouchableOpacity>
+                        {isSortMenuOpen ? (
+                            <View className="absolute bottom-10 left-0 w-44 overflow-hidden rounded-xl border border-neutral-700 bg-neutral-800">
+                                {SORT_OPTIONS.map((opt) => (
+                                    <TouchableOpacity
+                                        key={opt.value}
+                                        onPress={() => {
+                                            setSort(opt.value);
+                                            setIsSortMenuOpen(false);
+                                        }}
+                                        className="flex-row items-center justify-between px-3.5 py-2.5">
+                                        <Text className="text-sm text-neutral-200">{opt.label}</Text>
+                                        {sort === opt.value ? <Text className="text-amber-400">✓</Text> : null}
+                                    </TouchableOpacity>
+                                ))}
+                            </View>
+                        ) : null}
+                    </View>
+
+                    <TouchableOpacity onPress={() => setDisplayMode((current) => (current === "list" ? "grid" : "list"))} className="rounded-lg bg-neutral-800 px-3 py-2">
+                        <Text className="text-xs text-neutral-300">{displayMode === "list" ? "Grid" : "List"}</Text>
+                    </TouchableOpacity>
+                </View>
+
+                <TouchableOpacity testID="add-item-button" onPress={() => router.push("/item/new")} className="h-12 w-12 items-center justify-center rounded-full bg-amber-400">
+                    <Text className="text-xl font-semibold text-neutral-950">+</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 }
