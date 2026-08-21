@@ -57,8 +57,8 @@ Confirmed by reading every mobile `src/lib/api/*.ts` file against the full `ever
 | `POST /auth/reset-password` | Called from `everly` web (unchanged) — not mobile | Reset-password flow — mobile never calls this directly, see Group A's note on why |
 | `POST /auth/verify-email` | Not called | Email verification (not even represented in the mobile mockup — see §2) |
 | `POST /auth/resend-verification` | Not called | Same as above |
-| `PATCH /auth/me` | Not called | Profile editing (name) |
-| `POST /auth/change-password` | Not called | Change-password, in-app settings |
+| `PATCH /auth/me` | **Called** (Group C, done 2026-08-21) | Profile editing (name) |
+| `POST /auth/change-password` | **Called** (Group C, done 2026-08-21) | Change-password, in-app settings |
 | `POST /categories` | **Called** (Group B, done 2026-08-21) | Add category |
 | `PATCH /categories/:id` | **Called** (Group B, done 2026-08-21) | Edit category |
 | `DELETE /categories/:id` | **Called** (Group B, done 2026-08-21) | Delete category |
@@ -86,8 +86,10 @@ Screens: 2 new (list, add/edit) — likely `app/category/index.tsx` + `app/categ
 
 **Also built, since it was the actual blocker to reaching these screens**: the items list header's bare "Log out" button was replaced with a proper avatar (user's initials, derived client-side from `user.name`) + dropdown menu (Categories, Log out) — matching the mockup's original design that was simplified away back in step 4 of the MVP build, before Categories existed to link to. Implemented with RN's `Modal` (`transparent`, backdrop-tap-to-close) as the idiomatic equivalent of the mockup's DOM-`ref`-based click-outside-to-close pattern, which RN has no direct equivalent for.
 
-### C. In-app settings — profile + password
+### C. In-app settings — profile + password — **done, 2026-08-21**
 Screens: 1 new (`app/settings.tsx` or similar). API: 2 unused endpoints, already exist. Self-contained. Lowest priority of the account-related groups — web already covers this, so the value is parity/convenience, not unlocking anything mobile-only.
+
+**Built as**: `app/settings.tsx`, reachable from the avatar dropdown (now Categories / Settings / Log out). No mockup existed for this screen at all (confirmed via the same source scan used for the original audit — same situation as Group F's email verification), so the layout was designed fresh, matching existing conventions (`item/[id].tsx`'s form-field styling, `KeyboardAvoidingView`+dismiss pattern) rather than a mockup. Two independent sub-forms on one screen: name (email shown read-only, not editable per the API schema) and change-password (current + new + confirm, with the 400 "current password incorrect" response handled as a specific message via `ApiError.status`, not a generic failure). `AuthContext.tsx` gained `updateUserName()`, mirroring the existing `login`/`register` pattern of updating `user` state after a successful call — needed so the avatar's initials (derived from `user.name`) update live without a full session reload.
 
 ### D. Items list — richer browsing — **done, 2026-08-21**
 Search, filter modal (multi-select + archived toggle), grid/list toggle, sort menu. All client-side UI work against the *existing* `GET /items` endpoint, which already supports `q`, `category[]`, `archived`, `sort` (confirmed in `itemsQuerySchema` — the API was already built for this, mobile just doesn't expose it yet). No new backend work. Highest-value, lowest-new-surface-area group — every other group needs at least one new screen; this one is entirely inside `app/index.tsx`.

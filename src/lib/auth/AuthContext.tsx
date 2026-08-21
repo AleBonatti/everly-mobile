@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { apiFetch, ApiError } from "../api/client";
 import { authUserWithTokenSchema, loginInputSchema, registerInputSchema, type LoginInput, type RegisterInput } from "../api/schemas";
 import { clearToken, getToken, setToken } from "./tokenStorage";
+import { updateProfile } from "../api/auth";
 import { withMinDelay } from "../withMinDelay";
 
 type AuthUser = {
@@ -16,6 +17,7 @@ type AuthContextValue = {
     login: (input: LoginInput) => Promise<void>;
     register: (input: RegisterInput) => Promise<void>;
     logout: () => Promise<void>;
+    updateUserName: (name: string) => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -89,7 +91,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
     }
 
-    return <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>{children}</AuthContext.Provider>;
+    async function updateUserName(name: string) {
+        const updated = await updateProfile({ name });
+        setUser(updated);
+    }
+
+    return <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUserName }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

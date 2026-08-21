@@ -196,6 +196,15 @@ export default function Index() {
                         <TouchableOpacity
                             onPress={() => {
                                 setIsAvatarMenuOpen(false);
+                                router.push("/settings");
+                            }}
+                            className="border-b border-neutral-700 px-4 py-3">
+                            <Text className="text-sm text-neutral-200">Settings</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                            onPress={() => {
+                                setIsAvatarMenuOpen(false);
                                 logout();
                             }}
                             className="px-4 py-3">
