@@ -43,6 +43,15 @@ export const categorySchema = z.object({
 });
 export type Category = z.infer<typeof categorySchema>;
 
+export const createCategoryInputSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+    color: categoryColorSchema,
+});
+export type CreateCategoryInput = z.infer<typeof createCategoryInputSchema>;
+
+export const updateCategoryInputSchema = createCategoryInputSchema.partial();
+export type UpdateCategoryInput = z.infer<typeof updateCategoryInputSchema>;
+
 // Items
 
 export const createItemInputSchema = z.object({
