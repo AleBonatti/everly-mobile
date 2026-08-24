@@ -9,6 +9,7 @@ type AuthUser = {
     id: string;
     name: string;
     email: string;
+    emailVerified: boolean;
 };
 
 type AuthContextValue = {
@@ -18,6 +19,7 @@ type AuthContextValue = {
     register: (input: RegisterInput) => Promise<void>;
     logout: () => Promise<void>;
     updateUserName: (name: string) => Promise<void>;
+    refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -64,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         await setToken(authUser.token);
-        setUser({ id: authUser.id, name: authUser.name, email: authUser.email });
+        setUser({ id: authUser.id, name: authUser.name, email: authUser.email, emailVerified: authUser.emailVerified });
     }
 
     async function register(input: RegisterInput) {
@@ -83,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         await setToken(authUser.token);
-        setUser({ id: authUser.id, name: authUser.name, email: authUser.email });
+        setUser({ id: authUser.id, name: authUser.name, email: authUser.email, emailVerified: authUser.emailVerified });
     }
 
     async function logout() {
@@ -96,7 +98,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(updated);
     }
 
-    return <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUserName }}>{children}</AuthContext.Provider>;
+    async function refreshUser() {
+        try {
+            const me = await apiFetch<AuthUser>("/auth/me");
+            setUser(me);
+        } catch {
+            // Ignore — the caller (e.g. a manual refresh button) can decide how to handle failure.
+        }
+    }
+
+    return <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUserName, refreshUser }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {
