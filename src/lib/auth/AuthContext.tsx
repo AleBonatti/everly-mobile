@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { apiFetch, ApiError } from "../api/client";
 import { authUserWithTokenSchema, loginInputSchema, registerInputSchema, type LoginInput, type RegisterInput } from "../api/schemas";
 import { clearToken, getToken, setToken } from "./tokenStorage";
-import { updateProfile } from "../api/auth";
+import { updateProfile, logoutOnServer } from "../api/auth";
 import { withMinDelay } from "../withMinDelay";
 
 type AuthUser = {
@@ -89,6 +89,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     async function logout() {
+        try {
+            await logoutOnServer();
+        } catch {
+            // Best-effort — clearing the local token is what actually matters for mobile.
+        }
         await clearToken();
         setUser(null);
     }
