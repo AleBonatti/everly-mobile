@@ -26,3 +26,9 @@ export async function changePassword(input: ChangePasswordInput): Promise<void> 
         body: parsed,
     });
 }
+
+export async function logoutOnServer(): Promise<void> {
+    await apiFetch<unknown>("/auth/logout", {
+        method: "POST",
+    });
+}

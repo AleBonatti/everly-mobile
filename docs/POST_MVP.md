@@ -52,7 +52,7 @@ Confirmed by reading every mobile `src/lib/api/*.ts` file against the full `ever
 
 | Endpoint | Status | Feature it unlocks |
 |---|---|---|
-| `POST /auth/logout` | Not called (mobile logout only clears the local token) | Cosmetic gap — harmless, but worth calling for consistency with web |
+| `POST /auth/logout` | **Called** (Group G, done 2026-08-24) | Consistency with how web's session cookie gets cleared server-side |
 | `POST /auth/forgot-password` | **Called** (Group A, done 2026-08-21) | Forgot-password flow |
 | `POST /auth/reset-password` | Called from `everly` web (unchanged) — not mobile | Reset-password flow — mobile never calls this directly, see Group A's note on why |
 | `POST /auth/verify-email` | Called from `everly` web (unchanged), not mobile directly — same pattern as reset-password | Email verification (Group F, done 2026-08-24) — mobile calls `GET /auth/me` to check status instead |
@@ -122,8 +122,10 @@ UI: no separate "check your email" route — since mobile registration already l
 - **`VerifyEmailPage.tsx`'s success state — decided 2026-08-21, while fixing the equivalent reset-password page (Group A)**: no "go to login"/navigation button, no auto-redirect to the web dashboard — just a clean, final confirmation message (e.g. "Your email has been verified"). Matches the same fix already applied to `ResetPasswordPage.tsx`'s success state for the same reason: a mobile user landing on this page in their phone's browser has no reason to be pushed toward the *web* login/dashboard — the real next step is switching back to the native app, which the page can't do for them, so it shouldn't imply a browser-side next step exists at all. Apply this consistently when this group is actually built, not decided fresh at that point.
 - **Unverified-account restrictions — decided 2026-08-21, while actually building this group**: kept the existing no-restrictions MVP policy (`PLANNING.md` §3) — an unverified account can fully use the app (create/edit/delete items, manage categories, everything), the banner is purely informational, not a gate. **Explicitly flagged by the user as something to revisit and improve later** — this is a real, known gap (e.g. no protection at all against someone registering with an email they don't own and using the app indefinitely unverified), not a permanent design decision, just not being addressed as part of this pass. Revisit if/when this actually matters (real users, abuse concerns, etc.) rather than pre-emptively restricting now.
 
-### G. Housekeeping
+### G. Housekeeping — **done, 2026-08-24**
 - Call `POST /auth/logout` from mobile's `logout()` (currently just a local token clear) — small, no screen change, just consistency with how web behaves server-side.
+
+**Built as**: `logoutOnServer()` added to `src/lib/api/auth.ts`, called from `AuthContext.tsx`'s `logout()` before the local token clear — wrapped in try/catch so a failed/unreachable server call never blocks or breaks the actual logout, matching the existing best-effort pattern already used elsewhere (`restoreSession`'s silent 401 handling). No UI change — purely a server-side consistency fix.
 
 ### H. Real color/style system — added 2026-08-21
 Every screen built so far (auth, items list, item create/edit) approximates the mockups' visual language with Tailwind's stock `neutral`/`amber`/`red` palette rather than the mockups' actual OKLCH values — flagged repeatedly as a gap during MVP work (`PLANNING.md` §7's own "worth reconciling in a later polish pass" note) but never scoped as real work until now.
