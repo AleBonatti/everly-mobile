@@ -146,7 +146,40 @@ Every screen built so far (auth, items list, item create/edit) approximates the 
 
 **Why this needs real scoping, not a quick fix**: React Native/NativeWind don't support `oklch()` color syntax — every value needs converting to hex/rgba once, which means (a) deciding the conversion method (sample from source images like `#0e0a07` was, or compute OKLCH→sRGB directly — the mockups likely have a browser/design-tool source that can export exact hex, worth checking before hand-converting ~40 values), (b) building this into a proper design-token system (a NativeWind theme extension or a shared constants file) rather than hardcoding hex strings inline per-component the way current screens do, and (c) then going back through every already-built screen (auth, items list, item create/edit) to swap the approximated Tailwind classes for the real tokens — a real, multi-screen retrofit, not just new-screen work like most of A–G above.
 
-**Not yet planned in detail** — this group needs the same audit-then-plan treatment Group E (map) is getting when picked up: first decide the conversion/token-system approach, then scope the retrofit screen-by-screen. Don't start swapping colors ad hoc without that plan, or the same "used `neutral-950` here, `#0e0a07` there" inconsistency this group exists to fix will just recur in a different form.
+**Planning done 2026-08-24** — full audit-then-plan pass completed before any code changes, per the standing rule set when this group was created.
+
+**Actual data, not estimated**: extracted every `oklch(...)` value from both mockup files with a frequency count (`grep -oE` + `sort | uniq -c`). Confirmed the ~40 values are **not arbitrary noise** — they cluster into 4 coherent hue families with fine lightness/chroma steps, structurally similar to how Tailwind's own 50–950 shade scales work: **hue 60** (neutral text/background elevation scale, ~42 uses of the single most common value alone), **hue 85** (amber accent, ~34 uses across its variants), **hue 25** (red/danger, ~21 uses), **hue 150** (green/success, ~8 uses).
+
+**Decided: reduce to a smaller fixed scale** rather than preserve every mockup value 1:1 — explicitly chosen over keeping the full ~40 (the other option seriously considered) after seeing the real frequency data. Landed on **16 semantic tokens**, snapping the mockup's real cluster of values per role to one representative value per role (e.g. all border-ish values in the 0.26–0.32 lightness range → one `border` token) rather than keeping every minor variant:
+
+| Token | Hex | Role |
+|---|---|---|
+| `bgBase` | `#060403` | Screen background |
+| `bgElevated` | `#130e0b` | Card/input background |
+| `border` | `#2e2722` | Borders, dividers |
+| `textMuted` | `#76706c` | Timestamps, placeholders |
+| `textSecondary` | `#a9a39e` | Descriptions, labels |
+| `textPrimary` | `#d3ccc7` | Body text |
+| `textEmphasis` | `#f0eae5` | Titles, headings |
+| `accent` | `#e0af3b` | Primary actions, links, active states |
+| `accentMuted` | `#916a00` | Pressed/hover-equivalent accent |
+| `accentBgTint` | `#422800` | Accent background tint (active chips, etc.) |
+| `danger` | `#f07f77` | Error text, destructive actions |
+| `dangerMuted` | `#742e2b` | Pressed danger state |
+| `dangerBgTint` | `#391917` | Error message backgrounds |
+| `success` | `#76cf8a` | Success confirmations |
+| `successMuted` | `#2b7440` | Pressed success state |
+| `successBgTint` | `#15301b` | Success message backgrounds |
+
+**Conversion method**: programmatic, via the `culori` npm library's real OKLCH→sRGB math (a one-off Node script run in the scratchpad, not committed to the repo — the *output* table above is what matters, not the script) — not hand-estimated, not sampled from a rendered screenshot.
+
+**Real discrepancy found and resolved**: the mockup's actual base-background OKLCH (`oklch(0.11 0.008 60)`) converts to `#060403` — but the *already-shipped* app icon/splash screen use `#0e0a07`, sampled directly from the logo artwork back during store-readiness work and previously recorded in `PLANNING.md` §7 as the "confirmed" canonical value. These are two different sources that quietly disagreed. **Decided: the mockup's real value (`#060403`) is authoritative for the in-app background** — the icon is separate artwork, not necessarily an exact export of the mockup's CSS, and reconciling to the mockup is this group's entire purpose. **Known follow-up, not yet done**: the icon/splash screen still use `#0e0a07`, which will now read as a slightly different, lighter black than the in-app background once this retrofit ships — worth revisiting the icon artwork to match `#060403` exactly, but not blocking this group.
+
+**Execution plan, not yet started**:
+1. Create `src/lib/theme.ts` exporting the 16-token `colors` object above as the single source of truth — no more hardcoded hex strings inline in components.
+2. Retrofit screen-by-screen, swapping Tailwind's stock `neutral`/`amber`/`red` classes and any inline hex (`placeholderTextColor`, `ActivityIndicator` colors, etc.) for the real tokens: auth screens (login/register/forgot-password), items list (`app/index.tsx`), item edit (`app/item/[id].tsx`), category screens, settings screen.
+3. Fold in the already-known loose ends bundled into this group (below) at the same time, not as a separate pass — same screens are being touched anyway.
+4. Replace the Unicode-character icon stand-ins from Group D (⌕, ☰, ⇅, ▦) with real icons, if a suitable approach is chosen (not yet decided — worth a small side-decision on an icon library or SVG set when this step is reached).
 
 **Also in scope for this pass, found 2026-08-21 while building Group A**: submit-button loading-state UX is inconsistent across screens — `app/item/[id].tsx`'s Save button shows a real spinner (`ActivityIndicator`) during submission, while the three auth screens (`login.tsx`, `register.tsx`, `forgot-password.tsx`) instead swap the button's text (e.g. "Log in" → "Logging in..."). Additionally, **no screen visually dims/indicates a disabled button** — `disabled={isSubmitting}` correctly blocks the tap, but there's no opacity or style change communicating that state to the user. Both are functionally correct everywhere (every submit button genuinely disables and waits for its minimum-delay-wrapped API call, see `src/lib/withMinDelay.ts`), just visually inconsistent between screens — deliberately deferred here rather than patched piecemeal per-screen. When this group is picked up: standardize on one loading-indicator pattern (spinner is likely the better choice, matching what `item/[id].tsx` already does) and add a consistent disabled-opacity style, applied to all submit buttons at once.
 
