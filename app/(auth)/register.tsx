@@ -1,7 +1,10 @@
 import { useState } from "react";
 import { Link } from "expo-router";
-import { Image, KeyboardAvoidingView, Platform, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, Keyboard, View } from "react-native";
+import { Text, View } from "react-native";
 import { useAuth } from "../../src/lib/auth/AuthContext";
+import { FormInput } from "../../src/components/FormInput";
+import { PrimaryButton } from "../../src/components/PrimaryButton";
+import { AuthScreenLayout } from "../../src/components/AuthScreenLayout";
 
 export default function RegisterScreen() {
     const { register } = useAuth();
@@ -32,58 +35,50 @@ export default function RegisterScreen() {
             await register({ name, email, password });
         } catch (err) {
             console.error("Register error:", err);
-            setError("Could not create account. That email may already be in use.");
+            setError("That email may already be in use.");
             setPassword("");
             setConfirmPassword("");
-        } finally {
             setIsSubmitting(false);
         }
     }
 
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-neutral-950">
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                <View className="flex-1 items-center justify-center px-6">
-                    <Image source={require("../../assets/everly-logo.png")} className="mb-8 h-16 w-40" resizeMode="contain" />
-                    <Text className="mb-1 text-xl text-neutral-100">Create your account</Text>
-                    <Text className="mb-6 text-sm text-neutral-400">Start your list of things worth doing.</Text>
+        <AuthScreenLayout>
+            <Text className="mb-1 text-2xl font-bold text-emphasis">Create your account</Text>
+            <Text className="mb-[22px] text-sm text-secondary">Start your list of things worth doing.</Text>
 
-                    <View className="w-full max-w-sm gap-4">
-                        <View className="gap-1.5">
-                            <Text className="text-xs font-semibold text-neutral-400">Name</Text>
-                            <TextInput value={name} onChangeText={setName} placeholder="Maya Chen" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />
-                        </View>
-
-                        <View className="gap-1.5">
-                            <Text className="text-xs font-semibold text-neutral-400">Email</Text>
-                            <TextInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />
-                        </View>
-
-                        <View className="gap-1.5">
-                            <Text className="text-xs font-semibold text-neutral-400">Password</Text>
-                            <TextInput value={password} onChangeText={setPassword} secureTextEntry placeholder="At least 8 characters" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />
-                        </View>
-
-                        <View className="gap-1.5">
-                            <Text className="text-xs font-semibold text-neutral-400">Confirm password</Text>
-                            <TextInput value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry placeholder="Repeat password" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />
-                        </View>
-
-                        {error ? <Text className="text-sm text-red-400">{error}</Text> : null}
-
-                        <TouchableOpacity onPress={onSubmit} disabled={isSubmitting} className="items-center rounded-lg bg-amber-400 px-5 py-3">
-                            <Text className="font-semibold text-neutral-950">{isSubmitting ? "Creating account..." : "Create account"}</Text>
-                        </TouchableOpacity>
-                    </View>
-
-                    <View className="mt-5 flex-row">
-                        <Text className="text-sm text-neutral-400">Already have an account? </Text>
-                        <Link href="/(auth)/login">
-                            <Text className="text-sm text-amber-400">Log in</Text>
-                        </Link>
-                    </View>
+            <View className="w-full max-w-sm gap-[15px]">
+                <View className="gap-1.5">
+                    <Text className="text-[13px] font-semibold text-muted">Name</Text>
+                    <FormInput value={name} onChangeText={setName} placeholder="Maya Chen" />
                 </View>
-            </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
+
+                <View className="gap-1.5">
+                    <Text className="text-[13px] font-semibold text-muted">Email</Text>
+                    <FormInput value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" placeholder="you@example.com" />
+                </View>
+
+                <View className="gap-1.5">
+                    <Text className="text-[13px] font-semibold text-muted">Password</Text>
+                    <FormInput value={password} onChangeText={setPassword} secureTextEntry placeholder="At least 8 characters" />
+                </View>
+
+                <View className="gap-1.5">
+                    <Text className="text-[13px] font-semibold text-muted">Confirm password</Text>
+                    <FormInput value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry placeholder="Repeat password" />
+                </View>
+
+                {error ? <Text className="text-sm text-red-400">{error}</Text> : null}
+
+                <PrimaryButton onPress={onSubmit} isLoading={isSubmitting} label="Create account" className="mt-1" />
+            </View>
+
+            <View className="mt-5 flex-row">
+                <Text className="text-secondary">Already have an account? </Text>
+                <Link href="/(auth)/login">
+                    <Text className="font-semibold text-accent">Log in</Text>
+                </Link>
+            </View>
+        </AuthScreenLayout>
     );
 }
