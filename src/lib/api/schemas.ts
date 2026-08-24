@@ -24,6 +24,7 @@ export const authUserWithTokenSchema = z.object({
     id: z.uuid(),
     name: z.string(),
     email: z.email(),
+    emailVerified: z.boolean(),
     token: z.string().optional(),
 });
 export type AuthUserWithToken = z.infer<typeof authUserWithTokenSchema>;
@@ -32,6 +33,7 @@ export const authUserSchema = z.object({
     id: z.uuid(),
     name: z.string(),
     email: z.email(),
+    emailVerified: z.boolean(),
 });
 export type AuthUser = z.infer<typeof authUserSchema>;
 

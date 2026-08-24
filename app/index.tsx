@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { FlatList, Image, Modal, RefreshControl, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { useMemo, useState, useEffect } from "react";
+import { AppState, FlatList, Image, Modal, RefreshControl, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
 import { fetchCategories } from "../src/lib/api/categories";
 import { fetchItems, updateItem } from "../src/lib/api/items";
@@ -96,7 +96,7 @@ function ItemGridCard({ item, category, onToggleArchive, onPress }: { item: Item
 }
 
 export default function Index() {
-    const { user, logout } = useAuth();
+    const { user, logout, refreshUser } = useAuth();
     const [selectedCategoryIds, setSelectedCategoryIds] = useState<string[]>([]);
     const [showArchived, setShowArchived] = useState(false);
     const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -108,6 +108,7 @@ export default function Index() {
     const [sort, setSort] = useState<"newest" | "importance">("newest");
     const [displayMode, setDisplayMode] = useState<"list" | "grid">("grid");
     const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
+    const [isEmailBannerDismissed, setIsEmailBannerDismissed] = useState(false);
 
     const initials = user?.name
         ? user.name
@@ -162,6 +163,15 @@ export default function Index() {
         setSelectedCategoryIds((current) => (current.includes(categoryId) ? current.filter((id) => id !== categoryId) : [...current, categoryId]));
     }
 
+    useEffect(() => {
+        const subscription = AppState.addEventListener("change", (nextState) => {
+            if (nextState === "active") {
+                refreshUser();
+            }
+        });
+        return () => subscription.remove();
+    }, [refreshUser]);
+
     const hasActiveFilters = selectedCategoryIds.length > 0 || showArchived;
 
     return (
@@ -175,6 +185,18 @@ export default function Index() {
                     </TouchableOpacity>
                 </View>
             </View>
+
+            {user && !user.emailVerified && !isEmailBannerDismissed ? (
+                <View className="mx-4 mb-2 flex-row items-center justify-between gap-2 rounded-lg bg-amber-400/10 border border-amber-400/30 px-3 py-2.5">
+                    <Text className="flex-1 text-xs text-amber-300">Check your email to verify your account.</Text>
+                    <TouchableOpacity onPress={() => refreshUser()}>
+                        <Text className="text-xs font-semibold text-amber-400">Refresh</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => setIsEmailBannerDismissed(true)} hitSlop={8}>
+                        <Text className="text-xs text-neutral-500">✕</Text>
+                    </TouchableOpacity>
+                </View>
+            ) : null}
 
             <View className="px-4 pb-3">
                 <View className="flex-row items-center gap-2 rounded-full bg-neutral-900 px-3.5 py-2.5">
