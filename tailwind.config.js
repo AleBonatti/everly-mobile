@@ -5,7 +5,7 @@ module.exports = {
         extend: {
             colors: {
                 screen: "#0e0a07",
-                elevated: "#110c09",
+                elevated: "#1a1511",
                 border: {
                     DEFAULT: "#332c27",
                 },
