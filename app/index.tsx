@@ -275,9 +275,9 @@ export default function Index() {
                         </View>
 
                         <View className="flex-row items-center justify-between border-t border-border pt-3.5">
-                            <Text className="text-sm text-primary">Show archived</Text>
+                            <Text className="text-primary">Show archived</Text>
                             <TouchableOpacity onPress={() => setShowArchived((current) => !current)} className={`rounded-full px-3 py-1.5 ${showArchived ? "bg-accent" : "bg-elevated"}`}>
-                                <Text className={showArchived ? "text-xs font-semibold text-screen" : "text-xs text-secondary"}>{showArchived ? "On" : "Off"}</Text>
+                                <Text className={showArchived ? "text-sm font-semibold text-screen" : "text-sm text-secondary"}>{showArchived ? "On" : "Off"}</Text>
                             </TouchableOpacity>
                         </View>
                     </TouchableOpacity>
@@ -286,7 +286,7 @@ export default function Index() {
 
             {itemsQuery.isLoading ? (
                 <View className="flex-1 items-center justify-center">
-                    <Text className="text-neutral-500">Loading...</Text>
+                    <Text className="text-muted">Loading...</Text>
                 </View>
             ) : (
                 <FlatList
@@ -303,8 +303,8 @@ export default function Index() {
                                 <Text className="text-center text-red-400">Could not load your list. Pull down to try again.</Text>
                             ) : (
                                 <>
-                                    <Text className="text-lg text-neutral-100">Your list is empty</Text>
-                                    <Text className="text-center text-sm text-neutral-500">Heard about a great restaurant, a trip worth taking, or a show you can&apos;t miss? Add it here so you never forget.</Text>
+                                    <Text className="text-lg text-emphasis">Your list is empty</Text>
+                                    <Text className="text-center text-sm text-muted">Heard about a great restaurant, a trip worth taking, or a show you can&apos;t miss? Add it here so you never forget.</Text>
                                 </>
                             )}
                         </View>
@@ -313,18 +313,18 @@ export default function Index() {
                 />
             )}
 
-            <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-between gap-2.5 rounded-t-xl bg-neutral-900/90 px-4 pb-8 pt-3.5">
-                <View className="flex-row items-center gap-2">
-                    <TouchableOpacity onPress={() => setIsFilterModalOpen(true)} className={`rounded-lg px-3 py-2 ${hasActiveFilters ? "bg-amber-400" : "bg-neutral-800"}`}>
-                        <Text className={hasActiveFilters ? "text-xs font-semibold text-neutral-950" : "text-xs text-neutral-300"}>Filters</Text>
+            <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-between gap-2.5 rounded-t-xl bg-elevated/90 px-4 pb-8 pt-3.5">
+                <View className="flex-row items-center gap-1">
+                    <TouchableOpacity onPress={() => setIsFilterModalOpen(true)} className="h-8 w-8 items-center justify-center">
+                        <Ionicons name="filter-outline" size={18} color={hasActiveFilters ? colors.accent : colors.textPrimary} />
                     </TouchableOpacity>
 
                     <View>
-                        <TouchableOpacity onPress={() => setIsSortMenuOpen((current) => !current)} className="rounded-lg bg-neutral-800 px-3 py-2">
-                            <Text className="text-xs text-neutral-300">Sort</Text>
+                        <TouchableOpacity onPress={() => setIsSortMenuOpen((current) => !current)} className="h-8 w-8 items-center justify-center">
+                            <Ionicons name="swap-vertical-outline" size={18} color={colors.textPrimary} />
                         </TouchableOpacity>
                         {isSortMenuOpen ? (
-                            <View className="absolute bottom-10 left-0 w-44 overflow-hidden rounded-xl border border-neutral-700 bg-neutral-800">
+                            <View className="absolute bottom-10 left-0 w-44 overflow-hidden rounded-xl border border-border bg-elevated">
                                 {SORT_OPTIONS.map((opt) => (
                                     <TouchableOpacity
                                         key={opt.value}
@@ -333,21 +333,21 @@ export default function Index() {
                                             setIsSortMenuOpen(false);
                                         }}
                                         className="flex-row items-center justify-between px-3.5 py-2.5">
-                                        <Text className="text-sm text-neutral-200">{opt.label}</Text>
-                                        {sort === opt.value ? <Text className="text-amber-400">✓</Text> : null}
+                                        <Text className="text-sm text-primary">{opt.label}</Text>
+                                        {sort === opt.value ? <Text className="text-accent">✓</Text> : null}
                                     </TouchableOpacity>
                                 ))}
                             </View>
                         ) : null}
                     </View>
 
-                    <TouchableOpacity onPress={() => setDisplayMode((current) => (current === "list" ? "grid" : "list"))} className="rounded-lg bg-neutral-800 px-3 py-2">
-                        <Text className="text-xs text-neutral-300">{displayMode === "list" ? "Grid" : "List"}</Text>
+                    <TouchableOpacity onPress={() => setDisplayMode((current) => (current === "list" ? "grid" : "list"))} className="h-8 w-8 items-center justify-center">
+                        <Ionicons name={displayMode === "list" ? "grid-outline" : "list-outline"} size={18} color={colors.textPrimary} />
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity testID="add-item-button" onPress={() => router.push("/item/new")} className="h-12 w-12 items-center justify-center rounded-full bg-amber-400">
-                    <Text className="text-xl font-semibold text-neutral-950">+</Text>
+                <TouchableOpacity testID="add-item-button" onPress={() => router.push("/item/new")} className="h-12 w-12 items-center justify-center rounded-full bg-accent">
+                    <Text className="text-xl font-semibold text-screen">+</Text>
                 </TouchableOpacity>
             </View>
         </View>
