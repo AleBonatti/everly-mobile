@@ -32,6 +32,12 @@ export default {
                     androidGoogleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY,
                 },
             ],
+            [
+                "expo-location",
+                {
+                    locationWhenInUsePermission: "Everly uses your location to center the map when adding an item's location.",
+                },
+            ],
         ],
         scheme: "everlymobile",
         ios: {

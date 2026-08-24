@@ -13,6 +13,7 @@ import { createItem, deleteItem, updateItem, uploadItemImage } from "../../src/l
 import type { Item, PaginatedItems } from "../../src/lib/api/schemas";
 import { withMinDelay } from "../../src/lib/withMinDelay";
 import MapView, { Marker } from "react-native-maps";
+import * as Location from "expo-location";
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -46,6 +47,7 @@ export default function ItemEditScreen() {
     const [isDeleting, setIsDeleting] = useState(false);
 
     const [pin, setPin] = useState<{ latitude: number; longitude: number } | null>(existingItem?.latitude != null && existingItem?.longitude != null ? { latitude: existingItem.latitude, longitude: existingItem.longitude } : null);
+    const [currentLocation, setCurrentLocation] = useState<{ latitude: number; longitude: number } | null>(null);
 
     const categoriesQuery = useQuery({
         queryKey: ["categories"],
@@ -73,6 +75,22 @@ export default function ItemEditScreen() {
             setValue("categoryId", categoriesQuery.data[0].id);
         }
     }, [isEditing, categoriesQuery.data, setValue]);
+
+    useEffect(() => {
+        if (pin) return;
+
+        (async () => {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== "granted") return;
+
+            try {
+                const position = await Location.getCurrentPositionAsync({});
+                setCurrentLocation({ latitude: position.coords.latitude, longitude: position.coords.longitude });
+            } catch {
+                // Ignore — fall back to the generic wide view.
+            }
+        })();
+    }, [pin]);
 
     async function pickImage() {
         Alert.alert("Add photo", "Choose a source", [
@@ -262,10 +280,10 @@ export default function ItemEditScreen() {
                     <MapView
                         style={{ height: 160, borderRadius: 10 }}
                         region={{
-                            latitude: pin?.latitude ?? 40.7128,
-                            longitude: pin?.longitude ?? -74.006,
-                            latitudeDelta: pin ? 0.05 : 40,
-                            longitudeDelta: pin ? 0.05 : 40,
+                            latitude: pin?.latitude ?? currentLocation?.latitude ?? 40.7128,
+                            longitude: pin?.longitude ?? currentLocation?.longitude ?? -74.006,
+                            latitudeDelta: pin ? 0.05 : currentLocation ? 0.05 : 40,
+                            longitudeDelta: pin ? 0.05 : currentLocation ? 0.05 : 40,
                         }}
                         onPress={async (event) => {
                             const { latitude, longitude } = event.nativeEvent.coordinate;
