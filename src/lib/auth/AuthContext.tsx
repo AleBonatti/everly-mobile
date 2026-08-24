@@ -2,12 +2,14 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { apiFetch, ApiError } from "../api/client";
 import { authUserWithTokenSchema, loginInputSchema, registerInputSchema, type LoginInput, type RegisterInput } from "../api/schemas";
 import { clearToken, getToken, setToken } from "./tokenStorage";
+import { updateProfile, logoutOnServer } from "../api/auth";
 import { withMinDelay } from "../withMinDelay";
 
 type AuthUser = {
     id: string;
     name: string;
     email: string;
+    emailVerified: boolean;
 };
 
 type AuthContextValue = {
@@ -16,6 +18,8 @@ type AuthContextValue = {
     login: (input: LoginInput) => Promise<void>;
     register: (input: RegisterInput) => Promise<void>;
     logout: () => Promise<void>;
+    updateUserName: (name: string) => Promise<void>;
+    refreshUser: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -62,7 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         await setToken(authUser.token);
-        setUser({ id: authUser.id, name: authUser.name, email: authUser.email });
+        setUser({ id: authUser.id, name: authUser.name, email: authUser.email, emailVerified: authUser.emailVerified });
     }
 
     async function register(input: RegisterInput) {
@@ -81,15 +85,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         await setToken(authUser.token);
-        setUser({ id: authUser.id, name: authUser.name, email: authUser.email });
+        setUser({ id: authUser.id, name: authUser.name, email: authUser.email, emailVerified: authUser.emailVerified });
     }
 
     async function logout() {
+        try {
+            await logoutOnServer();
+        } catch {
+            // Best-effort — clearing the local token is what actually matters for mobile.
+        }
         await clearToken();
         setUser(null);
     }
 
-    return <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>{children}</AuthContext.Provider>;
+    async function updateUserName(name: string) {
+        const updated = await updateProfile({ name });
+        setUser(updated);
+    }
+
+    async function refreshUser() {
+        try {
+            const me = await apiFetch<AuthUser>("/auth/me");
+            setUser(me);
+        } catch {
+            // Ignore — the caller (e.g. a manual refresh button) can decide how to handle failure.
+        }
+    }
+
+    return <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUserName, refreshUser }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

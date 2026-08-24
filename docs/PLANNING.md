@@ -154,6 +154,10 @@ git flow release finish <version> # merges into BOTH main and develop, tags the 
 
 **Note on pre-2026-08-21 history**: work before this decision (MVP steps 1–9, plus post-MVP Groups A and B) was branched directly off `main` and merged straight back into it — no `develop` branch existed yet. `develop` was created at that point, level with `main`'s tip, so there's no divergence to reconcile; Git Flow just governs everything from here forward.
 
+**Real gotcha hit almost immediately**: this very "adopted Git Flow" doc commit was itself committed directly to `main` (not through a `feature/`/`release/` branch) right after `develop` had already branched off — the exact discipline break Git Flow exists to prevent. Result: `develop` silently fell out of sync with `main` (missing this doc section) until the drift was caught and fixed with a plain `git merge main` into `develop`. **Lesson: any commit meant to apply to the whole project — including doc-only changes — should go through `develop` (a `feature/` branch, or committed directly to `develop` for something this small), not straight to `main`**, or exactly this kind of silent divergence recurs. Worth periodically checking `git log main ^develop` (commits on `main` not yet in `develop`) if `main` is ever touched directly for any reason.
+
+**Release timing — as of 2026-08-21**: no release cut yet. `develop` has genuinely shippable work ahead of `main`'s last tag-worthy point (post-MVP Groups A, B, D — auth completeness, categories management, richer items browsing) but the decision was to keep accumulating feature work on `develop` rather than cut a release after every group. Revisit `git flow release start <version>` once a few more groups (`docs/POST_MVP.md`'s remaining C/F/G, or a deliberate stopping point) land — no fixed threshold, just "enough coherent work to be worth a tagged version."
+
 ### Local loop
 
 1. `npx expo start` runs Metro and prints a QR code.

@@ -24,9 +24,29 @@ export const authUserWithTokenSchema = z.object({
     id: z.uuid(),
     name: z.string(),
     email: z.email(),
+    emailVerified: z.boolean(),
     token: z.string().optional(),
 });
 export type AuthUserWithToken = z.infer<typeof authUserWithTokenSchema>;
+
+export const authUserSchema = z.object({
+    id: z.uuid(),
+    name: z.string(),
+    email: z.email(),
+    emailVerified: z.boolean(),
+});
+export type AuthUser = z.infer<typeof authUserSchema>;
+
+export const updateProfileInputSchema = z.object({
+    name: z.string().min(1, "Name is required"),
+});
+export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
+
+export const changePasswordInputSchema = z.object({
+    currentPassword: z.string().min(1, "Current password is required"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+});
+export type ChangePasswordInput = z.infer<typeof changePasswordInputSchema>;
 
 // Categories
 
