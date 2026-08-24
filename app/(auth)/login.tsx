@@ -51,7 +51,7 @@ export default function LoginScreen() {
                     <View className="flex-row items-center justify-between">
                         <Text className="text-[13px] font-semibold text-muted">Password</Text>
                         <Link href="/(auth)/forgot-password">
-                            <Text className="text-sm text-accent-muted">Forgot password?</Text>
+                            <Text className="text-sm text-accent">Forgot password?</Text>
                         </Link>
                     </View>
                     <FormInput value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
