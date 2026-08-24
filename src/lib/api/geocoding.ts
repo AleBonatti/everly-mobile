@@ -40,3 +40,24 @@ export async function geocodeAddress(query: string): Promise<GeocodeResult | nul
         label: first.display_name,
     };
 }
+
+export async function reverseGeocode(latitude: number, longitude: number): Promise<string | null> {
+    const params = new URLSearchParams({
+        lat: String(latitude),
+        lon: String(longitude),
+        format: "json",
+    });
+
+    const response = await fetch(`https://nominatim.openstreetmap.org/reverse?${params.toString()}`, {
+        headers: {
+            "User-Agent": "everly-mobile (learning project)",
+        },
+    });
+
+    if (!response.ok) {
+        return null;
+    }
+
+    const result: { display_name?: string } = await response.json();
+    return result.display_name ?? null;
+}

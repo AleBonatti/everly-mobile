@@ -8,10 +8,11 @@ import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Scroll
 import { z } from "zod";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { fetchCategories } from "../../src/lib/api/categories";
-import { geocodeAddress } from "../../src/lib/api/geocoding";
+import { geocodeAddress, reverseGeocode } from "../../src/lib/api/geocoding";
 import { createItem, deleteItem, updateItem, uploadItemImage } from "../../src/lib/api/items";
 import type { Item, PaginatedItems } from "../../src/lib/api/schemas";
 import { withMinDelay } from "../../src/lib/withMinDelay";
+import MapView, { Marker } from "react-native-maps";
 
 const formSchema = z.object({
     title: z.string().min(1, "Title is required"),
@@ -43,6 +44,8 @@ export default function ItemEditScreen() {
     const [pickedImage, setPickedImage] = useState<{ uri: string; mimeType: string | null } | null>(null);
     const [isSaving, setIsSaving] = useState(false);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    const [pin, setPin] = useState<{ latitude: number; longitude: number } | null>(existingItem?.latitude != null && existingItem?.longitude != null ? { latitude: existingItem.latitude, longitude: existingItem.longitude } : null);
 
     const categoriesQuery = useQuery({
         queryKey: ["categories"],
@@ -109,7 +112,11 @@ export default function ItemEditScreen() {
                     let longitude: number | undefined;
                     let locationLabel: string | undefined;
 
-                    if (values.address && values.address.trim()) {
+                    if (pin) {
+                        latitude = pin.latitude;
+                        longitude = pin.longitude;
+                        locationLabel = values.address && values.address.trim() ? values.address : undefined;
+                    } else if (values.address && values.address.trim()) {
                         const geocoded = await geocodeAddress(values.address);
                         if (geocoded) {
                             latitude = geocoded.latitude;
@@ -232,7 +239,44 @@ export default function ItemEditScreen() {
 
                 <View className="gap-1.5">
                     <Text className="text-xs font-semibold text-neutral-400">Location (optional)</Text>
-                    <Controller control={control} name="address" render={({ field: { value, onChange } }) => <TextInput value={value} onChangeText={onChange} placeholder="e.g. Kyoto, Japan" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />} />
+                    <Controller
+                        control={control}
+                        name="address"
+                        render={({ field: { value, onChange } }) => (
+                            <TextInput
+                                value={value}
+                                onChangeText={onChange}
+                                onSubmitEditing={async () => {
+                                    if (!value || !value.trim()) return;
+                                    const geocoded = await geocodeAddress(value);
+                                    if (geocoded) {
+                                        setPin({ latitude: geocoded.latitude, longitude: geocoded.longitude });
+                                    }
+                                }}
+                                placeholder="e.g. Kyoto, Japan"
+                                placeholderTextColor="#71717a"
+                                className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100"
+                            />
+                        )}
+                    />
+                    <MapView
+                        style={{ height: 160, borderRadius: 10 }}
+                        region={{
+                            latitude: pin?.latitude ?? 40.7128,
+                            longitude: pin?.longitude ?? -74.006,
+                            latitudeDelta: pin ? 0.05 : 40,
+                            longitudeDelta: pin ? 0.05 : 40,
+                        }}
+                        onPress={async (event) => {
+                            const { latitude, longitude } = event.nativeEvent.coordinate;
+                            setPin({ latitude, longitude });
+                            const label = await reverseGeocode(latitude, longitude);
+                            if (label) {
+                                setValue("address", label);
+                            }
+                        }}>
+                        {pin ? <Marker coordinate={pin} /> : null}
+                    </MapView>
                 </View>
 
                 {isEditing ? (
