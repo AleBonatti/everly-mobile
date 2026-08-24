@@ -45,7 +45,7 @@ Why Expo:
 - `expo-secure-store` — secure token storage (§3).
 - `expo-image-picker` — camera/gallery access for item photos.
 
-**Not needed for v1**: `react-native-maps` (interactive map picker) and `expo-location` (device GPS) — v1's location field is address-search-via-Nominatim only, matching the web app's desktop behavior (a plain HTTP fetch, no native map/GPS library). Add both back whenever a v1.1 interactive map picker is scoped.
+**Not needed for v1**: `react-native-maps` (interactive map picker) and `expo-location` (device GPS) — v1's location field is address-search-via-Nominatim only, matching the web app's desktop behavior (a plain HTTP fetch, no native map/GPS library). **Reversed 2026-08-24, v1.1 (Group E, `docs/POST_MVP.md`)**: both added — `react-native-maps` for a real tap-to-drop-pin map, `expo-location` to default the map's starting camera position to the device's GPS location (not to auto-set the item's location — the user still picks explicitly). Also worth noting: mobile's map uses Google Maps on Android (requires an API key), a deliberate departure from the web app's Google-avoidance stance (web uses OpenStreetMap/Leaflet) — see `docs/POST_MVP.md` Group E for the full reasoning on why that tradeoff was accepted for mobile specifically.
 
 ### iOS and Android: parallel, not sequential
 
@@ -278,7 +278,7 @@ Categories screen (list/add/edit/delete categories) and Category edit screen —
 
 Flagging where a web concept doesn't port 1:1, so scoping doesn't assume a straight copy:
 
-- **Maps**: the interactive drag-to-place map (`react-native-maps`) is deferred past v1 — only relevant once that picker is actually built.
+- **Maps**: the interactive tap-to-place map (`react-native-maps`) — **built 2026-08-24, `docs/POST_MVP.md` Group E** — no longer deferred.
 - **Image upload**: `expo-image-picker` replaces the web `<input type="file">`/drag-drop, with a native camera-or-gallery choice — arguably a better UX than web here, worth leaning into.
 - **Location**: matches desktop's Nominatim address-search, not the browser Geolocation API and not device GPS — a plain HTTP fetch, works unchanged from RN, no extra library.
 - **Forms**: `react-hook-form` + `zod` work in RN, but inputs differ — no native `<input>`/`<select>`; RN's `TextInput` and community picker components stand in.
