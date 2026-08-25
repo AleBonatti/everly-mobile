@@ -199,11 +199,11 @@ export default function ItemEditScreen() {
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-screen pt-16">
             <View className="flex-row items-center justify-between px-4 pb-4">
                 <TouchableOpacity onPress={() => router.back()}>
-                    <Text className="text-[15px] text-secondary">Cancel</Text>
+                    <Text className="text-lg text-secondary">Cancel</Text>
                 </TouchableOpacity>
-                <Text className="text-base font-semibold text-emphasis">{isEditing ? "Edit item" : "Add item"}</Text>
+                <Text className="text-xl font-bold text-emphasis">{isEditing ? "Edit item" : "Add item"}</Text>
                 <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={isSaving || isDeleting}>
-                    {isSaving ? <ActivityIndicator color={colors.accent} /> : <Text className="text-[15px] font-bold text-accent">Save</Text>}
+                    {isSaving ? <ActivityIndicator color={colors.accent} /> : <Text className="text-lg font-bold text-accent">Save</Text>}
                 </TouchableOpacity>
             </View>
 

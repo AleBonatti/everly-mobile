@@ -17,7 +17,7 @@ export default function CategoriesScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Text className="text-[15px] text-secondary">‹ Back</Text>
                 </TouchableOpacity>
-                <Text className="text-[21px] font-bold text-emphasis">Categories</Text>
+                <Text className="text-xl font-bold text-emphasis">Categories</Text>
                 <TouchableOpacity testID="add-category-button" onPress={() => router.push("/category/new")} className="h-9 w-9 items-center justify-center rounded-full bg-accent">
                     <Text className="text-lg font-semibold text-screen">+</Text>
                 </TouchableOpacity>

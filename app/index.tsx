@@ -224,7 +224,7 @@ export default function Index() {
                                 router.push("/category");
                             }}
                             className="border-b border-border px-4 py-3">
-                            <Text className="text-sm text-primary">Categories</Text>
+                            <Text className="text-md text-primary">Categories</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => {
@@ -232,7 +232,7 @@ export default function Index() {
                                 router.push("/settings");
                             }}
                             className="border-b border-border px-4 py-3">
-                            <Text className="text-sm text-primary">Settings</Text>
+                            <Text className="text-md text-primary">Settings</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -241,7 +241,7 @@ export default function Index() {
                                 logout();
                             }}
                             className="px-4 py-3">
-                            <Text className="text-sm text-red-400">Log out</Text>
+                            <Text className="text-md text-red-400">Log out</Text>
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>

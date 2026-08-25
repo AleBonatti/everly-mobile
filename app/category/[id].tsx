@@ -101,7 +101,7 @@ export default function CategoryEditScreen() {
                 <TouchableOpacity onPress={() => router.back()}>
                     <Text className="text-[15px] text-secondary">Cancel</Text>
                 </TouchableOpacity>
-                <Text className="text-base font-semibold text-emphasis">{isEditing ? "Edit category" : "Add category"}</Text>
+                <Text className="text-xl font-bold text-emphasis">{isEditing ? "Edit category" : "Add category"}</Text>
                 <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={isSaving || isDeleting}>
                     {isSaving ? <ActivityIndicator color={colors.accent} /> : <Text className="font-semibold text-accent">Save</Text>}
                 </TouchableOpacity>
