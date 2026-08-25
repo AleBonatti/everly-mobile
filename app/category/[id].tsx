@@ -7,7 +7,7 @@ import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity
 import { z } from "zod";
 import { createCategory, deleteCategory, updateCategory } from "../../src/lib/api/categories";
 import { ApiError } from "../../src/lib/api/client";
-import { CATEGORY_COLORS, type Category, type PaginatedItems } from "../../src/lib/api/schemas";
+import { CATEGORY_COLORS, type Category } from "../../src/lib/api/schemas";
 import { withMinDelay } from "../../src/lib/withMinDelay";
 
 const formSchema = z.object({

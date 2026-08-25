@@ -4,12 +4,15 @@ import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { z } from "zod";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { fetchCategories } from "../../src/lib/api/categories";
 import { geocodeAddress, reverseGeocode } from "../../src/lib/api/geocoding";
 import { createItem, deleteItem, updateItem, uploadItemImage } from "../../src/lib/api/items";
+import { FormInput } from "../../src/components/FormInput";
+import { CategoryChip } from "../../src/components/CategoryChip";
+import { colors } from "../../src/lib/theme";
 import type { Item, PaginatedItems } from "../../src/lib/api/schemas";
 import { withMinDelay } from "../../src/lib/withMinDelay";
 import MapView, { Marker } from "react-native-maps";
@@ -193,44 +196,42 @@ export default function ItemEditScreen() {
     }
 
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-neutral-950 pt-16">
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-screen pt-16">
             <View className="flex-row items-center justify-between px-4 pb-4">
                 <TouchableOpacity onPress={() => router.back()}>
-                    <Text className="text-neutral-400">Cancel</Text>
+                    <Text className="text-[15px] text-secondary">Cancel</Text>
                 </TouchableOpacity>
-                <Text className="text-base font-semibold text-neutral-100">{isEditing ? "Edit item" : "Add item"}</Text>
+                <Text className="text-base font-semibold text-emphasis">{isEditing ? "Edit item" : "Add item"}</Text>
                 <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={isSaving || isDeleting}>
-                    {isSaving ? <ActivityIndicator color="#fbbf24" /> : <Text className="font-semibold text-amber-400">Save</Text>}
+                    {isSaving ? <ActivityIndicator color={colors.accent} /> : <Text className="text-[15px] font-bold text-accent">Save</Text>}
                 </TouchableOpacity>
             </View>
 
             <ScrollView className="flex-1 px-4" contentContainerClassName="gap-4 pb-10" keyboardShouldPersistTaps="handled">
-                <TouchableOpacity onPress={pickImage} className="aspect-[2/1] items-center justify-center overflow-hidden rounded-lg border border-dashed border-neutral-700 bg-neutral-900">
-                    {pickedImage ? <Image source={{ uri: pickedImage.uri }} className="h-full w-full" /> : existingItem?.imageUrl ? <Image source={{ uri: existingItem.imageUrl }} className="h-full w-full" /> : <Text className="text-xs text-neutral-500">TAP TO ADD PHOTO</Text>}
+                <TouchableOpacity onPress={pickImage} className="aspect-[2/1] items-center justify-center overflow-hidden rounded-lg border border-dashed border-border bg-elevated">
+                    {pickedImage ? <Image source={{ uri: pickedImage.uri }} className="h-full w-full" /> : existingItem?.imageUrl ? <Image source={{ uri: existingItem.imageUrl }} className="h-full w-full" /> : <Text className="text-xs text-muted">TAP TO ADD PHOTO</Text>}
                 </TouchableOpacity>
 
                 <View className="gap-1.5">
-                    <Text className="text-xs font-semibold text-neutral-400">Title</Text>
-                    <Controller control={control} name="title" render={({ field: { value, onChange } }) => <TextInput value={value} onChangeText={onChange} placeholder="e.g. Try the tasting menu at Lumen" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />} />
+                    <Text className="text-[13px] font-semibold text-muted">Title</Text>
+                    <Controller control={control} name="title" render={({ field: { value, onChange } }) => <FormInput value={value} onChangeText={onChange} placeholder="e.g. Try the tasting menu at Lumen" />} />
                     {errors.title ? <Text className="text-xs text-red-400">{errors.title.message}</Text> : null}
                 </View>
 
                 <View className="gap-1.5">
-                    <Text className="text-xs font-semibold text-neutral-400">Description</Text>
-                    <Controller control={control} name="description" render={({ field: { value, onChange } }) => <TextInput value={value} onChangeText={onChange} placeholder="Why is this worth doing?" placeholderTextColor="#71717a" multiline numberOfLines={3} className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />} />
+                    <Text className="text-[13px] font-semibold text-muted">Description</Text>
+                    <Controller control={control} name="description" render={({ field: { value, onChange } }) => <FormInput value={value} onChangeText={onChange} placeholder="Why is this worth doing?" multiline numberOfLines={3} />} />
                 </View>
 
                 <View className="gap-2">
-                    <Text className="text-xs font-semibold text-neutral-400">Category</Text>
+                    <Text className="text-[13px] font-semibold text-muted">Category</Text>
                     <Controller
                         control={control}
                         name="categoryId"
                         render={({ field: { value, onChange } }) => (
-                            <View className="flex-row flex-wrap gap-2">
+                            <View className="flex-row flex-wrap gap-1.5">
                                 {(categoriesQuery.data ?? []).map((category) => (
-                                    <TouchableOpacity key={category.id} onPress={() => onChange(category.id)} className={`rounded-lg border px-3 py-2 ${value === category.id ? "border-amber-400 bg-amber-400/20" : "border-neutral-700 bg-neutral-900"}`}>
-                                        <Text className={value === category.id ? "text-amber-400" : "text-neutral-400"}>{category.name}</Text>
-                                    </TouchableOpacity>
+                                    <CategoryChip key={category.id} label={category.name} color={category.color} active={value === category.id} onPress={() => onChange(category.id)} />
                                 ))}
                             </View>
                         )}
@@ -239,7 +240,7 @@ export default function ItemEditScreen() {
                 </View>
 
                 <View className="gap-2">
-                    <Text className="text-xs font-semibold text-neutral-400">Importance</Text>
+                    <Text className="text-[13px] font-semibold text-muted">Importance</Text>
                     <Controller
                         control={control}
                         name="importance"
@@ -247,7 +248,7 @@ export default function ItemEditScreen() {
                             <View className="flex-row gap-2">
                                 {[1, 2, 3, 4, 5].map((n) => (
                                     <TouchableOpacity key={n} onPress={() => onChange(n)}>
-                                        <Text className={`text-2xl ${n <= value ? "text-amber-400" : "text-neutral-700"}`}>●</Text>
+                                        <Text className={`text-2xl ${n <= value ? "text-accent" : "text-border"}`}>●</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -256,12 +257,12 @@ export default function ItemEditScreen() {
                 </View>
 
                 <View className="gap-1.5">
-                    <Text className="text-xs font-semibold text-neutral-400">Location (optional)</Text>
+                    <Text className="text-[13px] font-semibold text-muted">Location (optional)</Text>
                     <Controller
                         control={control}
                         name="address"
                         render={({ field: { value, onChange } }) => (
-                            <TextInput
+                            <FormInput
                                 value={value}
                                 onChangeText={onChange}
                                 onSubmitEditing={async () => {
@@ -272,29 +273,29 @@ export default function ItemEditScreen() {
                                     }
                                 }}
                                 placeholder="e.g. Kyoto, Japan"
-                                placeholderTextColor="#71717a"
-                                className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100"
                             />
                         )}
                     />
-                    <MapView
-                        style={{ height: 160, borderRadius: 10 }}
-                        region={{
-                            latitude: pin?.latitude ?? currentLocation?.latitude ?? 40.7128,
-                            longitude: pin?.longitude ?? currentLocation?.longitude ?? -74.006,
-                            latitudeDelta: pin ? 0.05 : currentLocation ? 0.05 : 40,
-                            longitudeDelta: pin ? 0.05 : currentLocation ? 0.05 : 40,
-                        }}
-                        onPress={async (event) => {
-                            const { latitude, longitude } = event.nativeEvent.coordinate;
-                            setPin({ latitude, longitude });
-                            const label = await reverseGeocode(latitude, longitude);
-                            if (label) {
-                                setValue("address", label);
-                            }
-                        }}>
-                        {pin ? <Marker coordinate={pin} /> : null}
-                    </MapView>
+                    <View className="mt-2 h-40 overflow-hidden rounded-lg">
+                        <MapView
+                            style={{ flex: 1 }}
+                            region={{
+                                latitude: pin?.latitude ?? currentLocation?.latitude ?? 40.7128,
+                                longitude: pin?.longitude ?? currentLocation?.longitude ?? -74.006,
+                                latitudeDelta: pin ? 0.05 : currentLocation ? 0.05 : 40,
+                                longitudeDelta: pin ? 0.05 : currentLocation ? 0.05 : 40,
+                            }}
+                            onPress={async (event) => {
+                                const { latitude, longitude } = event.nativeEvent.coordinate;
+                                setPin({ latitude, longitude });
+                                const label = await reverseGeocode(latitude, longitude);
+                                if (label) {
+                                    setValue("address", label);
+                                }
+                            }}>
+                            {pin ? <Marker coordinate={pin} /> : null}
+                        </MapView>
+                    </View>
                 </View>
 
                 {isEditing ? (

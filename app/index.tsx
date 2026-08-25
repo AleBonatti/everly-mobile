@@ -70,7 +70,7 @@ function ItemListCard({ item, category, onToggleArchive, onPress }: { item: Item
                 <View className="mt-1 flex-row items-center justify-between">
                     <ImportanceDots importance={item.importance} />
                     <TouchableOpacity onPress={onToggleArchive} hitSlop={8}>
-                        <Text className="text-sm text-accent">{item.isArchived ? "Restore" : "Mark done"}</Text>
+                        <Text className="text-xs text-accent">{item.isArchived ? "Restore" : "Mark done"}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -97,7 +97,7 @@ function ItemGridCard({ item, category, onToggleArchive, onPress }: { item: Item
                 <View className="flex-row items-center justify-between">
                     <ImportanceDots importance={item.importance} />
                     <TouchableOpacity onPress={onToggleArchive} hitSlop={8}>
-                        <Text className="text-sm text-accent">{item.isArchived ? "Restore" : "Mark done"}</Text>
+                        <Text className="text-xs text-accent">{item.isArchived ? "Restore" : "Mark done"}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -188,7 +188,7 @@ export default function Index() {
         <View className="flex-1 bg-screen pt-16">
             <View className="flex-row items-center px-4 pb-3">
                 <View className="flex-1" />
-                <Image source={require("../assets/everly-logo-header.png")} className="h-10" resizeMode="contain" />
+                <Image source={require("../assets/everly-logo-header.png")} className="h-12" resizeMode="contain" />
                 <View className="flex-1 items-end">
                     <TouchableOpacity onPress={() => setIsAvatarMenuOpen(true)} className="h-9 w-9 items-center justify-center rounded-full bg-accent">
                         <Text className="text-xs font-bold text-screen">{initials}</Text>
@@ -313,15 +313,15 @@ export default function Index() {
                 />
             )}
 
-            <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-between gap-2.5 rounded-t-xl bg-elevated/90 px-4 pb-8 pt-3.5">
-                <View className="flex-row items-center gap-1">
+            <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-between gap-2.5 rounded-t-xl bg-elevated/90 px-6 pb-6 pt-4">
+                <View className="flex-row items-center gap-4">
                     <TouchableOpacity onPress={() => setIsFilterModalOpen(true)} className="h-8 w-8 items-center justify-center">
-                        <Ionicons name="filter-outline" size={18} color={hasActiveFilters ? colors.accent : colors.textPrimary} />
+                        <Ionicons name="filter-outline" size={24} color={hasActiveFilters ? colors.accent : colors.textPrimary} />
                     </TouchableOpacity>
 
                     <View>
                         <TouchableOpacity onPress={() => setIsSortMenuOpen((current) => !current)} className="h-8 w-8 items-center justify-center">
-                            <Ionicons name="swap-vertical-outline" size={18} color={colors.textPrimary} />
+                            <Ionicons name="swap-vertical-outline" size={24} color={colors.textPrimary} />
                         </TouchableOpacity>
                         {isSortMenuOpen ? (
                             <View className="absolute bottom-10 left-0 w-44 overflow-hidden rounded-xl border border-border bg-elevated">
@@ -342,7 +342,7 @@ export default function Index() {
                     </View>
 
                     <TouchableOpacity onPress={() => setDisplayMode((current) => (current === "list" ? "grid" : "list"))} className="h-8 w-8 items-center justify-center">
-                        <Ionicons name={displayMode === "list" ? "grid-outline" : "list-outline"} size={18} color={colors.textPrimary} />
+                        <Ionicons name={displayMode === "list" ? "grid-outline" : "list-outline"} size={24} color={colors.textPrimary} />
                     </TouchableOpacity>
                 </View>
 
