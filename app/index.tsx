@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, useEffect } from "react";
 import { AppState, FlatList, Image, Modal, RefreshControl, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { fetchCategories } from "../src/lib/api/categories";
 import { fetchItems, updateItem } from "../src/lib/api/items";
@@ -115,6 +116,7 @@ export default function Index() {
     const [search, setSearch] = useState("");
     const router = useRouter();
     const queryClient = useQueryClient();
+    const insets = useSafeAreaInsets();
     const [sort, setSort] = useState<"newest" | "importance">("newest");
     const [displayMode, setDisplayMode] = useState<"list" | "grid">("grid");
     const [isSortMenuOpen, setIsSortMenuOpen] = useState(false);
@@ -209,9 +211,9 @@ export default function Index() {
             ) : null}
 
             <View className="px-4 pb-3">
-                <View className="flex-row items-center gap-2 rounded-full bg-elevated px-[13px] py-[11px]">
+                <View className="flex-row items-center gap-2 rounded-full bg-elevated px-4 py-3.5">
                     <Ionicons name="search" size={15} color={colors.textMuted} />
-                    <TextInput value={search} onChangeText={setSearch} placeholder="Search your list..." placeholderTextColor={colors.textMuted} className="flex-1 text-secondary" />
+                    <TextInput value={search} onChangeText={setSearch} placeholder="Search your list..." placeholderTextColor={colors.textMuted} className="flex-1 text-[13px] text-secondary" style={{ paddingVertical: 0, includeFontPadding: false }} />
                 </View>
             </View>
 
@@ -295,7 +297,8 @@ export default function Index() {
                     keyExtractor={(item) => item.id}
                     numColumns={displayMode === "grid" ? 2 : 1}
                     columnWrapperClassName={displayMode === "grid" ? "gap-2.5" : undefined}
-                    contentContainerClassName="flex-grow gap-2.5 px-4 pb-28"
+                    contentContainerClassName="flex-grow gap-2.5 px-4"
+                    contentContainerStyle={{ paddingBottom: 80 + insets.bottom }}
                     refreshControl={<RefreshControl refreshing={isUserRefreshing} onRefresh={handlePullToRefresh} tintColor="#fbbf24" colors={["#fbbf24"]} progressBackgroundColor="#171717" />}
                     ListEmptyComponent={
                         <View className="flex-1 items-center justify-center gap-2 px-6 py-16">
@@ -313,7 +316,7 @@ export default function Index() {
                 />
             )}
 
-            <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-between gap-2.5 rounded-t-xl bg-elevated/90 px-6 pb-6 pt-4">
+            <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-between gap-2.5 rounded-t-xl bg-elevated/90 px-6 pt-4" style={{ paddingBottom: insets.bottom + 12 }}>
                 <View className="flex-row items-center gap-4">
                     <TouchableOpacity onPress={() => setIsFilterModalOpen(true)} className="h-8 w-8 items-center justify-center">
                         <Ionicons name="filter-outline" size={24} color={hasActiveFilters ? colors.accent : colors.textPrimary} />

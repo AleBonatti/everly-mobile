@@ -4,7 +4,8 @@ import { changePassword } from "../src/lib/api/auth";
 import { ApiError, NetworkError } from "../src/lib/api/client";
 import { useAuth } from "../src/lib/auth/AuthContext";
 import { withMinDelay } from "../src/lib/withMinDelay";
-import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { Alert, Keyboard, Platform, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { FormInput } from "../src/components/FormInput";
 import { PrimaryButton } from "../src/components/PrimaryButton";
 
@@ -73,7 +74,7 @@ export default function SettingsScreen() {
     }
 
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-screen pt-16">
+        <KeyboardAvoidingView behavior="padding" className="flex-1 bg-screen pt-16">
             <View className="flex-row items-center justify-between border-b border-border px-4 pb-3.5 mb-6">
                 <TouchableOpacity onPress={() => router.back()}>
                     <Text className="text-lg text-secondary">‹ Back</Text>

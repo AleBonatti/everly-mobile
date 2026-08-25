@@ -60,12 +60,12 @@ export default function RegisterScreen() {
 
                 <View className="gap-1.5">
                     <Text className="text-[13px] font-semibold text-muted">Password</Text>
-                    <FormInput value={password} onChangeText={setPassword} secureTextEntry placeholder="At least 8 characters" />
+                    <FormInput value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" placeholder="At least 8 characters" />
                 </View>
 
                 <View className="gap-1.5">
                     <Text className="text-[13px] font-semibold text-muted">Confirm password</Text>
-                    <FormInput value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry placeholder="Repeat password" />
+                    <FormInput value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry autoCapitalize="none" placeholder="Repeat password" />
                 </View>
 
                 {error ? <Text className="text-sm text-red-400">{error}</Text> : null}

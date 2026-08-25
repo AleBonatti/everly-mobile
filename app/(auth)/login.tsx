@@ -54,7 +54,7 @@ export default function LoginScreen() {
                             <Text className="text-sm text-accent">Forgot password?</Text>
                         </Link>
                     </View>
-                    <FormInput value={password} onChangeText={setPassword} secureTextEntry placeholder="••••••••" />
+                    <FormInput value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" placeholder="••••••••" />
                 </View>
 
                 {error ? <Text className="text-sm text-red-400">{error}</Text> : null}
