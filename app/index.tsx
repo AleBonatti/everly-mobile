@@ -2,10 +2,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState, useEffect } from "react";
 import { AppState, FlatList, Image, Modal, RefreshControl, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { fetchCategories } from "../src/lib/api/categories";
 import { fetchItems, updateItem } from "../src/lib/api/items";
 import type { Category, Item } from "../src/lib/api/schemas";
 import { useAuth } from "../src/lib/auth/AuthContext";
+import { colors } from "../src/lib/theme";
 
 const CATEGORY_COLOR_TEXT: Record<string, string> = {
     "#ef4444": "text-red-400",
@@ -22,6 +24,10 @@ function categoryTextClass(color: string): string {
     return CATEGORY_COLOR_TEXT[color] ?? "text-neutral-400";
 }
 
+function categoryBgTint(color: string): string {
+    return color ? `${color}33` : "transparent";
+}
+
 const SORT_OPTIONS = [
     { value: "newest" as const, label: "Newest first" },
     { value: "importance" as const, label: "Most important" },
@@ -31,7 +37,7 @@ function ImportanceDots({ importance }: { importance: number }) {
     return (
         <View className="flex-row gap-0.5">
             {[1, 2, 3, 4, 5].map((n) => (
-                <Text key={n} className={n <= importance ? "text-amber-400" : "text-neutral-700"}>
+                <Text key={n} className={n <= importance ? "text-accent" : "text-border"}>
                     ●
                 </Text>
             ))}
@@ -41,28 +47,30 @@ function ImportanceDots({ importance }: { importance: number }) {
 
 function ItemListCard({ item, category, onToggleArchive, onPress }: { item: Item; category: Category | undefined; onToggleArchive: () => void; onPress: () => void }) {
     return (
-        <TouchableOpacity onPress={onPress} className="flex-row gap-3 rounded-xl border border-neutral-800 bg-neutral-900 p-2.5">
+        <TouchableOpacity onPress={onPress} className="flex-row gap-3 rounded-xl border border-border bg-elevated p-2.5">
             {item.imageUrl ? (
-                <Image source={{ uri: item.imageUrl }} className="h-20 w-20 rounded-lg" />
+                <Image source={{ uri: item.imageUrl }} className="h-24 w-24 rounded-lg" />
             ) : (
-                <View className="h-20 w-20 items-center justify-center rounded-lg bg-neutral-800">
-                    <Text className={`text-[9px] font-semibold uppercase ${categoryTextClass(category?.color ?? "")}`}>{category?.name ?? "Uncategorized"}</Text>
+                <View className="h-24 w-24 rounded-lg overflow-hidden" style={{ backgroundColor: categoryBgTint(category?.color ?? "") }}>
+                    <View className="absolute bottom-1 left-1 right-1 rounded bg-black/70 py-1">
+                        <Text className={`text-center text-xs lowercase ${categoryTextClass(category?.color ?? "")}`}>{category?.name ?? "Uncategorized"}</Text>
+                    </View>
                 </View>
             )}
 
             <View className="flex-1 justify-center gap-1">
-                <Text numberOfLines={1} className="text-sm font-semibold text-neutral-100">
+                <Text numberOfLines={1} className="text-base font-medium text-emphasis">
                     {item.title}
                 </Text>
                 {item.description ? (
-                    <Text numberOfLines={2} className="text-xs text-neutral-400">
+                    <Text numberOfLines={2} className="text-sm font-medium text-muted">
                         {item.description}
                     </Text>
                 ) : null}
                 <View className="mt-1 flex-row items-center justify-between">
                     <ImportanceDots importance={item.importance} />
                     <TouchableOpacity onPress={onToggleArchive} hitSlop={8}>
-                        <Text className="text-[10px] text-amber-400">{item.isArchived ? "Restore" : "Mark done"}</Text>
+                        <Text className="text-xs text-accent">{item.isArchived ? "Restore" : "Mark done"}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -72,22 +80,24 @@ function ItemListCard({ item, category, onToggleArchive, onPress }: { item: Item
 
 function ItemGridCard({ item, category, onToggleArchive, onPress }: { item: Item; category: Category | undefined; onToggleArchive: () => void; onPress: () => void }) {
     return (
-        <TouchableOpacity onPress={onPress} className="flex-1 overflow-hidden rounded-xl border border-neutral-800 bg-neutral-900">
+        <TouchableOpacity onPress={onPress} className="flex-1 overflow-hidden rounded-xl border border-border bg-elevated">
             {item.imageUrl ? (
                 <Image source={{ uri: item.imageUrl }} className="aspect-square w-full" />
             ) : (
-                <View className="aspect-square w-full items-center justify-center bg-neutral-800">
-                    <Text className={`text-[8px] font-semibold uppercase ${categoryTextClass(category?.color ?? "")}`}>{category?.name ?? "Uncategorized"}</Text>
+                <View className="aspect-square w-full" style={{ backgroundColor: categoryBgTint(category?.color ?? "") }}>
+                    <View className="absolute bottom-1.5 left-1.5 right-1.5 rounded bg-black/70 py-1">
+                        <Text className={`text-center text-xs font-semibold uppercase tracking-wide ${categoryTextClass(category?.color ?? "")}`}>{category?.name ?? "Uncategorized"}</Text>
+                    </View>
                 </View>
             )}
             <View className="gap-1 p-2.5">
-                <Text numberOfLines={1} className="text-xs font-semibold text-neutral-100">
+                <Text numberOfLines={1} className="text-sm font-semibold text-emphasis">
                     {item.title}
                 </Text>
                 <View className="flex-row items-center justify-between">
                     <ImportanceDots importance={item.importance} />
                     <TouchableOpacity onPress={onToggleArchive} hitSlop={8}>
-                        <Text className="text-[9px] text-amber-400">{item.isArchived ? "Restore" : "Mark done"}</Text>
+                        <Text className="text-xs text-accent">{item.isArchived ? "Restore" : "Mark done"}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -175,13 +185,13 @@ export default function Index() {
     const hasActiveFilters = selectedCategoryIds.length > 0 || showArchived;
 
     return (
-        <View className="flex-1 bg-neutral-950 pt-16">
+        <View className="flex-1 bg-screen pt-16">
             <View className="flex-row items-center px-4 pb-3">
                 <View className="flex-1" />
-                <Image source={require("../assets/everly-logo-header.png")} className="h-8 w-28" resizeMode="contain" />
+                <Image source={require("../assets/everly-logo-header.png")} className="h-12" resizeMode="contain" />
                 <View className="flex-1 items-end">
-                    <TouchableOpacity onPress={() => setIsAvatarMenuOpen(true)} className="h-9 w-9 items-center justify-center rounded-full bg-amber-400">
-                        <Text className="text-xs font-bold text-neutral-950">{initials}</Text>
+                    <TouchableOpacity onPress={() => setIsAvatarMenuOpen(true)} className="h-9 w-9 items-center justify-center rounded-full bg-accent">
+                        <Text className="text-xs font-bold text-screen">{initials}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -199,29 +209,30 @@ export default function Index() {
             ) : null}
 
             <View className="px-4 pb-3">
-                <View className="flex-row items-center gap-2 rounded-full bg-neutral-900 px-3.5 py-2.5">
-                    <TextInput value={search} onChangeText={setSearch} placeholder="Search your list..." placeholderTextColor="#71717a" className="flex-1 text-sm text-neutral-300" />
+                <View className="flex-row items-center gap-2 rounded-full bg-elevated px-[13px] py-[11px]">
+                    <Ionicons name="search" size={15} color={colors.textMuted} />
+                    <TextInput value={search} onChangeText={setSearch} placeholder="Search your list..." placeholderTextColor={colors.textMuted} className="flex-1 text-secondary" />
                 </View>
             </View>
 
             <Modal visible={isAvatarMenuOpen} transparent animationType="fade" onRequestClose={() => setIsAvatarMenuOpen(false)}>
                 <TouchableOpacity activeOpacity={1} onPress={() => setIsAvatarMenuOpen(false)} className="flex-1 bg-black/40">
-                    <View className="absolute right-4 top-16 w-40 overflow-hidden rounded-xl border border-neutral-700 bg-neutral-800">
+                    <View className="absolute right-4 top-16 w-40 overflow-hidden rounded-xl border border-border bg-elevated">
                         <TouchableOpacity
                             onPress={() => {
                                 setIsAvatarMenuOpen(false);
                                 router.push("/category");
                             }}
-                            className="border-b border-neutral-700 px-4 py-3">
-                            <Text className="text-sm text-neutral-200">Categories</Text>
+                            className="border-b border-border px-4 py-3">
+                            <Text className="text-md text-primary">Categories</Text>
                         </TouchableOpacity>
                         <TouchableOpacity
                             onPress={() => {
                                 setIsAvatarMenuOpen(false);
                                 router.push("/settings");
                             }}
-                            className="border-b border-neutral-700 px-4 py-3">
-                            <Text className="text-sm text-neutral-200">Settings</Text>
+                            className="border-b border-border px-4 py-3">
+                            <Text className="text-md text-primary">Settings</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -230,7 +241,7 @@ export default function Index() {
                                 logout();
                             }}
                             className="px-4 py-3">
-                            <Text className="text-sm text-red-400">Log out</Text>
+                            <Text className="text-md text-red-400">Log out</Text>
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
@@ -238,35 +249,35 @@ export default function Index() {
 
             <Modal visible={isFilterModalOpen} transparent animationType="fade" onRequestClose={() => setIsFilterModalOpen(false)}>
                 <TouchableOpacity activeOpacity={1} onPress={() => setIsFilterModalOpen(false)} className="flex-1 justify-end bg-black/50">
-                    <TouchableOpacity activeOpacity={1} className="gap-4 rounded-t-2xl bg-neutral-900 px-4 pb-9 pt-5">
+                    <TouchableOpacity activeOpacity={1} className="gap-4 rounded-t-2xl bg-elevated px-4 pb-9 pt-5">
                         <View className="flex-row items-center justify-between">
-                            <Text className="text-base font-bold text-neutral-100">Filters</Text>
+                            <Text className="text-base font-bold text-emphasis">Filters</Text>
                             <TouchableOpacity onPress={() => setIsFilterModalOpen(false)}>
-                                <Text className="text-sm font-semibold text-amber-400">Done</Text>
+                                <Text className="font-semibold text-accent">Done</Text>
                             </TouchableOpacity>
                         </View>
 
                         <View className="gap-1">
-                            <Text className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-neutral-500">Categories</Text>
+                            <Text className="mb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">Categories</Text>
                             <TouchableOpacity onPress={() => setSelectedCategoryIds([])} className="flex-row items-center gap-2.5 py-2">
-                                <Text className={selectedCategoryIds.length === 0 ? "text-amber-400" : "text-neutral-600"}>{selectedCategoryIds.length === 0 ? "✓" : "○"}</Text>
-                                <Text className="text-sm text-neutral-200">All categories</Text>
+                                <Text className={selectedCategoryIds.length === 0 ? "text-accent" : "text-muted"}>{selectedCategoryIds.length === 0 ? "✓" : "○"}</Text>
+                                <Text className="text-primary">All categories</Text>
                             </TouchableOpacity>
                             {(categoriesQuery.data ?? []).map((category) => {
                                 const active = selectedCategoryIds.includes(category.id);
                                 return (
                                     <TouchableOpacity key={category.id} onPress={() => toggleCategoryFilter(category.id)} className="flex-row items-center gap-2.5 py-2">
-                                        <Text className={active ? "text-amber-400" : "text-neutral-600"}>{active ? "✓" : "○"}</Text>
-                                        <Text className="text-sm text-neutral-200">{category.name}</Text>
+                                        <Text className={active ? "text-accent" : "text-muted"}>{active ? "✓" : "○"}</Text>
+                                        <Text className=" text-primary">{category.name}</Text>
                                     </TouchableOpacity>
                                 );
                             })}
                         </View>
 
-                        <View className="flex-row items-center justify-between border-t border-neutral-700 pt-3.5">
-                            <Text className="text-sm text-neutral-200">Show archived</Text>
-                            <TouchableOpacity onPress={() => setShowArchived((current) => !current)} className={`rounded-full px-3 py-1.5 ${showArchived ? "bg-amber-400" : "bg-neutral-700"}`}>
-                                <Text className={showArchived ? "text-xs font-semibold text-neutral-950" : "text-xs text-neutral-300"}>{showArchived ? "On" : "Off"}</Text>
+                        <View className="flex-row items-center justify-between border-t border-border pt-3.5">
+                            <Text className="text-primary">Show archived</Text>
+                            <TouchableOpacity onPress={() => setShowArchived((current) => !current)} className={`rounded-full px-3 py-1.5 ${showArchived ? "bg-accent" : "bg-elevated"}`}>
+                                <Text className={showArchived ? "text-sm font-semibold text-screen" : "text-sm text-secondary"}>{showArchived ? "On" : "Off"}</Text>
                             </TouchableOpacity>
                         </View>
                     </TouchableOpacity>
@@ -275,7 +286,7 @@ export default function Index() {
 
             {itemsQuery.isLoading ? (
                 <View className="flex-1 items-center justify-center">
-                    <Text className="text-neutral-500">Loading...</Text>
+                    <Text className="text-muted">Loading...</Text>
                 </View>
             ) : (
                 <FlatList
@@ -292,8 +303,8 @@ export default function Index() {
                                 <Text className="text-center text-red-400">Could not load your list. Pull down to try again.</Text>
                             ) : (
                                 <>
-                                    <Text className="text-lg text-neutral-100">Your list is empty</Text>
-                                    <Text className="text-center text-sm text-neutral-500">Heard about a great restaurant, a trip worth taking, or a show you can&apos;t miss? Add it here so you never forget.</Text>
+                                    <Text className="text-lg text-emphasis">Your list is empty</Text>
+                                    <Text className="text-center text-sm text-muted">Heard about a great restaurant, a trip worth taking, or a show you can&apos;t miss? Add it here so you never forget.</Text>
                                 </>
                             )}
                         </View>
@@ -302,18 +313,18 @@ export default function Index() {
                 />
             )}
 
-            <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-between gap-2.5 rounded-t-xl bg-neutral-900/90 px-4 pb-8 pt-3.5">
-                <View className="flex-row items-center gap-2">
-                    <TouchableOpacity onPress={() => setIsFilterModalOpen(true)} className={`rounded-lg px-3 py-2 ${hasActiveFilters ? "bg-amber-400" : "bg-neutral-800"}`}>
-                        <Text className={hasActiveFilters ? "text-xs font-semibold text-neutral-950" : "text-xs text-neutral-300"}>Filters</Text>
+            <View className="absolute bottom-0 left-0 right-0 flex-row items-center justify-between gap-2.5 rounded-t-xl bg-elevated/90 px-6 pb-6 pt-4">
+                <View className="flex-row items-center gap-4">
+                    <TouchableOpacity onPress={() => setIsFilterModalOpen(true)} className="h-8 w-8 items-center justify-center">
+                        <Ionicons name="filter-outline" size={24} color={hasActiveFilters ? colors.accent : colors.textPrimary} />
                     </TouchableOpacity>
 
                     <View>
-                        <TouchableOpacity onPress={() => setIsSortMenuOpen((current) => !current)} className="rounded-lg bg-neutral-800 px-3 py-2">
-                            <Text className="text-xs text-neutral-300">Sort</Text>
+                        <TouchableOpacity onPress={() => setIsSortMenuOpen((current) => !current)} className="h-8 w-8 items-center justify-center">
+                            <Ionicons name="swap-vertical-outline" size={24} color={colors.textPrimary} />
                         </TouchableOpacity>
                         {isSortMenuOpen ? (
-                            <View className="absolute bottom-10 left-0 w-44 overflow-hidden rounded-xl border border-neutral-700 bg-neutral-800">
+                            <View className="absolute bottom-10 left-0 w-44 overflow-hidden rounded-xl border border-border bg-elevated">
                                 {SORT_OPTIONS.map((opt) => (
                                     <TouchableOpacity
                                         key={opt.value}
@@ -322,21 +333,21 @@ export default function Index() {
                                             setIsSortMenuOpen(false);
                                         }}
                                         className="flex-row items-center justify-between px-3.5 py-2.5">
-                                        <Text className="text-sm text-neutral-200">{opt.label}</Text>
-                                        {sort === opt.value ? <Text className="text-amber-400">✓</Text> : null}
+                                        <Text className="text-sm text-primary">{opt.label}</Text>
+                                        {sort === opt.value ? <Text className="text-accent">✓</Text> : null}
                                     </TouchableOpacity>
                                 ))}
                             </View>
                         ) : null}
                     </View>
 
-                    <TouchableOpacity onPress={() => setDisplayMode((current) => (current === "list" ? "grid" : "list"))} className="rounded-lg bg-neutral-800 px-3 py-2">
-                        <Text className="text-xs text-neutral-300">{displayMode === "list" ? "Grid" : "List"}</Text>
+                    <TouchableOpacity onPress={() => setDisplayMode((current) => (current === "list" ? "grid" : "list"))} className="h-8 w-8 items-center justify-center">
+                        <Ionicons name={displayMode === "list" ? "grid-outline" : "list-outline"} size={24} color={colors.textPrimary} />
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity testID="add-item-button" onPress={() => router.push("/item/new")} className="h-12 w-12 items-center justify-center rounded-full bg-amber-400">
-                    <Text className="text-xl font-semibold text-neutral-950">+</Text>
+                <TouchableOpacity testID="add-item-button" onPress={() => router.push("/item/new")} className="h-12 w-12 items-center justify-center rounded-full bg-accent">
+                    <Text className="text-xl font-semibold text-screen">+</Text>
                 </TouchableOpacity>
             </View>
         </View>

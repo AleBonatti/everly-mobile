@@ -4,7 +4,9 @@ import { changePassword } from "../src/lib/api/auth";
 import { ApiError, NetworkError } from "../src/lib/api/client";
 import { useAuth } from "../src/lib/auth/AuthContext";
 import { withMinDelay } from "../src/lib/withMinDelay";
-import { ActivityIndicator, Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { FormInput } from "../src/components/FormInput";
+import { PrimaryButton } from "../src/components/PrimaryButton";
 
 export default function SettingsScreen() {
     const router = useRouter();
@@ -71,60 +73,57 @@ export default function SettingsScreen() {
     }
 
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-neutral-950 pt-16">
-            <View className="flex-row items-center px-4 pb-4">
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-screen pt-16">
+            <View className="flex-row items-center justify-between border-b border-border px-4 pb-3.5 mb-6">
                 <TouchableOpacity onPress={() => router.back()}>
-                    <Text className="text-neutral-400">‹ Back</Text>
+                    <Text className="text-lg text-secondary">‹ Back</Text>
                 </TouchableOpacity>
-                <Text className="ml-3 text-lg font-bold text-neutral-100">Settings</Text>
+                <Text className="ml-3 text-xl font-bold text-emphasis">Settings</Text>
+                <View className="w-16" />
             </View>
 
             <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
                 <ScrollView className="flex-1 px-4" contentContainerClassName="gap-8 pb-10" keyboardShouldPersistTaps="handled">
                     <View className="gap-3">
-                        <Text className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Profile</Text>
+                        <Text className="text-md text-emphasis font-semibold uppercase tracking-wide">Profile</Text>
 
                         <View className="gap-1.5">
-                            <Text className="text-xs font-semibold text-neutral-400">Email</Text>
-                            <Text className="text-sm text-neutral-500">{user?.email}</Text>
+                            <Text className="text-[13px] font-semibold text-muted">Email</Text>
+                            <Text className="text-sm text-secondary">{user?.email}</Text>
                         </View>
 
                         <View className="gap-1.5">
-                            <Text className="text-xs font-semibold text-neutral-400">Name</Text>
-                            <TextInput value={name} onChangeText={setName} placeholder="Your name" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />
+                            <Text className="text-[13px] font-semibold text-muted">Name</Text>
+                            <FormInput value={name} onChangeText={setName} placeholder="Your name" />
                         </View>
 
                         {nameError ? <Text className="text-xs text-red-400">{nameError}</Text> : null}
 
-                        <TouchableOpacity onPress={onSaveName} disabled={isSavingName} className="items-center rounded-lg bg-amber-400 px-5 py-2.5">
-                            {isSavingName ? <ActivityIndicator color="#0e0a07" /> : <Text className="text-sm font-semibold text-neutral-950">Save name</Text>}
-                        </TouchableOpacity>
+                        <PrimaryButton onPress={onSaveName} isLoading={isSavingName} label="Save name" className="self-start px-5 py-2.5" />
                     </View>
 
-                    <View className="gap-3 border-t border-neutral-800 pt-6">
-                        <Text className="text-xs font-semibold uppercase tracking-wide text-neutral-500">Change password</Text>
+                    <View className="gap-3 border-t border-border pt-6">
+                        <Text className="text-md font-semibold uppercase tracking-wide text-emphasis">Change password</Text>
 
                         <View className="gap-1.5">
-                            <Text className="text-xs font-semibold text-neutral-400">Current password</Text>
-                            <TextInput value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry placeholder="••••••••" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />
+                            <Text className="text-[13px] font-semibold text-muted">Current password</Text>
+                            <FormInput value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry placeholder="••••••••" />
                         </View>
 
                         <View className="gap-1.5">
-                            <Text className="text-xs font-semibold text-neutral-400">New password</Text>
-                            <TextInput value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="At least 8 characters" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />
+                            <Text className="text-[13px] font-semibold text-muted">New password</Text>
+                            <FormInput value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="At least 8 characters" />
                         </View>
 
                         <View className="gap-1.5">
-                            <Text className="text-xs font-semibold text-neutral-400">Confirm new password</Text>
-                            <TextInput value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry placeholder="Repeat password" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />
+                            <Text className="text-[13px] font-semibold text-muted">Confirm new password</Text>
+                            <FormInput value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry placeholder="Repeat password" />
                         </View>
 
                         {passwordError ? <Text className="text-xs text-red-400">{passwordError}</Text> : null}
-                        {passwordSuccess ? <Text className="text-xs text-green-400">Password updated.</Text> : null}
+                        {passwordSuccess ? <Text className="text-xs text-success">Password updated.</Text> : null}
 
-                        <TouchableOpacity onPress={onChangePassword} disabled={isChangingPassword} className="items-center rounded-lg bg-amber-400 px-5 py-2.5">
-                            {isChangingPassword ? <ActivityIndicator color="#0e0a07" /> : <Text className="text-sm font-semibold text-neutral-950">Update password</Text>}
-                        </TouchableOpacity>
+                        <PrimaryButton onPress={onChangePassword} isLoading={isChangingPassword} label="Update password" className="self-start px-5 py-2.5" />
                     </View>
                 </ScrollView>
             </TouchableWithoutFeedback>
