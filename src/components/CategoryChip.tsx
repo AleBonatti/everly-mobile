@@ -4,7 +4,7 @@ export function CategoryChip({ label, color, active, onPress }: { label: string;
     return (
         <TouchableOpacity
             onPress={onPress}
-            className="rounded-lg border px-2.5 py-1.5"
+            className="self-start rounded-lg border px-2.5 py-1.5"
             style={{
                 backgroundColor: active ? `${color}33` : "transparent",
                 borderColor: active ? color : "#2e2722",

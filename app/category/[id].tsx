@@ -3,12 +3,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { z } from "zod";
 import { createCategory, deleteCategory, updateCategory } from "../../src/lib/api/categories";
 import { ApiError } from "../../src/lib/api/client";
 import { CATEGORY_COLORS, type Category } from "../../src/lib/api/schemas";
 import { withMinDelay } from "../../src/lib/withMinDelay";
+import { FormInput } from "../../src/components/FormInput";
+import { colors } from "../../src/lib/theme";
+import { CategoryChip } from "../../src/components/CategoryChip";
 
 const formSchema = z.object({
     name: z.string().min(1, "Name is required"),
@@ -93,33 +96,33 @@ export default function CategoryEditScreen() {
     }
 
     return (
-        <View className="flex-1 bg-neutral-950 pt-16">
-            <View className="flex-row items-center justify-between px-4 pb-4">
+        <View className="flex-1 bg-screen pt-16">
+            <View className="flex-row items-center justify-between border-b border-border px-4 pb-3.5 mb-6">
                 <TouchableOpacity onPress={() => router.back()}>
-                    <Text className="text-neutral-400">Cancel</Text>
+                    <Text className="text-[15px] text-secondary">Cancel</Text>
                 </TouchableOpacity>
-                <Text className="text-base font-semibold text-neutral-100">{isEditing ? "Edit category" : "Add category"}</Text>
+                <Text className="text-base font-semibold text-emphasis">{isEditing ? "Edit category" : "Add category"}</Text>
                 <TouchableOpacity onPress={handleSubmit(onSubmit)} disabled={isSaving || isDeleting}>
-                    {isSaving ? <ActivityIndicator color="#fbbf24" /> : <Text className="font-semibold text-amber-400">Save</Text>}
+                    {isSaving ? <ActivityIndicator color={colors.accent} /> : <Text className="font-semibold text-accent">Save</Text>}
                 </TouchableOpacity>
             </View>
 
             <ScrollView className="flex-1 px-4" contentContainerClassName="gap-4 pb-10">
                 <View className="gap-1.5">
-                    <Text className="text-xs font-semibold text-neutral-400">Name</Text>
-                    <Controller control={control} name="name" render={({ field: { value, onChange } }) => <TextInput value={value} onChangeText={onChange} placeholder="e.g. Restaurants" placeholderTextColor="#71717a" className="rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2.5 text-neutral-100" />} />
+                    <Text className="text-[13px] font-semibold text-muted">Name</Text>
+                    <Controller control={control} name="name" render={({ field: { value, onChange } }) => <FormInput value={value} onChangeText={onChange} placeholder="e.g. Restaurants" />} />
                     {errors.name ? <Text className="text-xs text-red-400">{errors.name.message}</Text> : null}
                 </View>
 
                 <View className="gap-2">
-                    <Text className="text-xs font-semibold text-neutral-400">Color</Text>
+                    <Text className="text-[13px] font-semibold text-muted">Color</Text>
                     <Controller
                         control={control}
                         name="color"
                         render={({ field: { value, onChange } }) => (
                             <View className="flex-row flex-wrap gap-2.5">
                                 {CATEGORY_COLORS.map((color) => (
-                                    <TouchableOpacity key={color} onPress={() => onChange(color)} style={{ backgroundColor: color }} className={`h-9 w-9 rounded-lg ${value === color ? "border-2 border-neutral-100" : ""}`} />
+                                    <TouchableOpacity key={color} onPress={() => onChange(color)} style={{ backgroundColor: color }} className={`h-9 w-9 rounded-lg ${value === color ? "border-2 border-emphasis" : ""}`} />
                                 ))}
                             </View>
                         )}
@@ -127,8 +130,9 @@ export default function CategoryEditScreen() {
                 </View>
 
                 {previewName ? (
-                    <View className="self-start rounded-md px-3 py-1.5" style={{ backgroundColor: previewColor }}>
-                        <Text className="text-xs font-semibold uppercase text-neutral-950">{previewName}</Text>
+                    <View className="gap-2">
+                        <Text className="text-[13px] font-semibold text-muted">Preview</Text>
+                        <CategoryChip label={previewName} color={previewColor} active onPress={() => {}} />
                     </View>
                 ) : null}
 
