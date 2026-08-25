@@ -3,6 +3,8 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
 import "../global.css";
 import { AuthProvider, useAuth } from "../src/lib/auth/AuthContext";
+import { KeyboardProvider } from "react-native-keyboard-controller";
+import { colors } from "../src/lib/theme";
 
 const queryClient = new QueryClient();
 
@@ -27,15 +29,17 @@ function RootNavigation() {
         return null;
     }
 
-    return <Stack screenOptions={{ headerShown: false }} />;
+    return <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.screen } }} />;
 }
 
 export default function RootLayout() {
     return (
-        <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-                <RootNavigation />
-            </AuthProvider>
-        </QueryClientProvider>
+        <KeyboardProvider>
+            <QueryClientProvider client={queryClient}>
+                <AuthProvider>
+                    <RootNavigation />
+                </AuthProvider>
+            </QueryClientProvider>
+        </KeyboardProvider>
     );
 }

@@ -4,7 +4,8 @@ import * as ImagePicker from "expo-image-picker";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, ScrollView, Text, TouchableOpacity, View } from "react-native";
+import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { z } from "zod";
 import { ImageManipulator, SaveFormat } from "expo-image-manipulator";
 import { fetchCategories } from "../../src/lib/api/categories";
@@ -196,7 +197,7 @@ export default function ItemEditScreen() {
     }
 
     return (
-        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} className="flex-1 bg-screen pt-16">
+        <KeyboardAvoidingView behavior="padding" className="flex-1 bg-screen pt-16">
             <View className="flex-row items-center justify-between px-4 pb-4">
                 <TouchableOpacity onPress={() => router.back()}>
                     <Text className="text-lg text-secondary">Cancel</Text>
@@ -299,7 +300,7 @@ export default function ItemEditScreen() {
                 </View>
 
                 {isEditing ? (
-                    <TouchableOpacity onPress={confirmDelete} disabled={isDeleting} className="mt-2 items-center py-3">
+                    <TouchableOpacity onPress={confirmDelete} disabled={isDeleting} className="mb-4 items-center py-3">
                         <Text className="text-sm text-red-400">{isDeleting ? "Deleting..." : "Delete item"}</Text>
                     </TouchableOpacity>
                 ) : null}
