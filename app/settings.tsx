@@ -4,14 +4,14 @@ import { changePassword } from "../src/lib/api/auth";
 import { ApiError, NetworkError } from "../src/lib/api/client";
 import { useAuth } from "../src/lib/auth/AuthContext";
 import { withMinDelay } from "../src/lib/withMinDelay";
-import { Alert, Keyboard, Platform, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { Alert, Keyboard, ScrollView, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { FormInput } from "../src/components/FormInput";
 import { PrimaryButton } from "../src/components/PrimaryButton";
 
 export default function SettingsScreen() {
     const router = useRouter();
-    const { user, updateUserName } = useAuth();
+    const { user, updateUserName, deleteAccount } = useAuth();
 
     const [name, setName] = useState(user?.name ?? "");
     const [isSavingName, setIsSavingName] = useState(false);
@@ -23,6 +23,10 @@ export default function SettingsScreen() {
     const [isChangingPassword, setIsChangingPassword] = useState(false);
     const [passwordError, setPasswordError] = useState("");
     const [passwordSuccess, setPasswordSuccess] = useState(false);
+
+    const [deletePassword, setDeletePassword] = useState("");
+    const [isDeletingAccount, setIsDeletingAccount] = useState(false);
+    const [deleteError, setDeleteError] = useState("");
 
     async function onSaveName() {
         if (!name.trim()) {
@@ -73,6 +77,36 @@ export default function SettingsScreen() {
         }
     }
 
+    async function onDeleteAccount() {
+        if (!deletePassword) {
+            setDeleteError("Enter your password to confirm.");
+            return;
+        }
+
+        setDeleteError("");
+        setIsDeletingAccount(true);
+        try {
+            await withMinDelay(deleteAccount(deletePassword));
+            router.replace("/(auth)/login");
+        } catch (err) {
+            if (err instanceof NetworkError) {
+                setDeleteError(err.message);
+            } else if (err instanceof ApiError && err.status === 400) {
+                setDeleteError("Password is incorrect.");
+            } else {
+                setDeleteError("Something went wrong. Please try again.");
+            }
+            setIsDeletingAccount(false);
+        }
+    }
+
+    function confirmDeleteAccount() {
+        Alert.alert("Delete account", "This permanently deletes your account and everything in it. This cannot be undone.", [
+            { text: "Cancel", style: "cancel" },
+            { text: "Delete", style: "destructive", onPress: onDeleteAccount },
+        ]);
+    }
+
     return (
         <KeyboardAvoidingView behavior="padding" className="flex-1 bg-screen pt-16">
             <View className="flex-row items-center justify-between border-b border-border px-4 pb-3.5 mb-6">
@@ -108,23 +142,39 @@ export default function SettingsScreen() {
 
                         <View className="gap-1.5">
                             <Text className="text-[13px] font-semibold text-muted">Current password</Text>
-                            <FormInput value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry placeholder="••••••••" />
+                            <FormInput value={currentPassword} onChangeText={setCurrentPassword} secureTextEntry autoCapitalize="none" placeholder="••••••••" />
                         </View>
 
                         <View className="gap-1.5">
                             <Text className="text-[13px] font-semibold text-muted">New password</Text>
-                            <FormInput value={newPassword} onChangeText={setNewPassword} secureTextEntry placeholder="At least 8 characters" />
+                            <FormInput value={newPassword} onChangeText={setNewPassword} secureTextEntry autoCapitalize="none" placeholder="At least 8 characters" />
                         </View>
 
                         <View className="gap-1.5">
                             <Text className="text-[13px] font-semibold text-muted">Confirm new password</Text>
-                            <FormInput value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry placeholder="Repeat password" />
+                            <FormInput value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry autoCapitalize="none" placeholder="Repeat password" />
                         </View>
 
                         {passwordError ? <Text className="text-xs text-red-400">{passwordError}</Text> : null}
                         {passwordSuccess ? <Text className="text-xs text-success">Password updated.</Text> : null}
 
                         <PrimaryButton onPress={onChangePassword} isLoading={isChangingPassword} label="Update password" className="self-start px-5 py-2.5" />
+                    </View>
+
+                    <View className="gap-3 border-t border-border pt-6 mb-12">
+                        <Text className="text-md font-semibold uppercase tracking-wide text-red-400">Delete account</Text>
+                        <Text className="text-sm text-secondary">This permanently deletes your account, saved items, and photos. This cannot be undone.</Text>
+
+                        <View className="gap-1.5">
+                            <Text className="text-[13px] font-semibold text-muted">Password</Text>
+                            <FormInput value={deletePassword} onChangeText={setDeletePassword} secureTextEntry autoCapitalize="none" placeholder="Confirm with your password" />
+                        </View>
+
+                        {deleteError ? <Text className="text-xs text-red-400">{deleteError}</Text> : null}
+
+                        <TouchableOpacity onPress={confirmDeleteAccount} disabled={isDeletingAccount} className="self-start rounded-lg border border-red-400 px-5 py-2.5">
+                            <Text className="font-semibold text-red-400">{isDeletingAccount ? "Deleting..." : "Delete account"}</Text>
+                        </TouchableOpacity>
                     </View>
                 </ScrollView>
             </TouchableWithoutFeedback>

@@ -48,6 +48,11 @@ export const changePasswordInputSchema = z.object({
 });
 export type ChangePasswordInput = z.infer<typeof changePasswordInputSchema>;
 
+export const deleteAccountInputSchema = z.object({
+    password: z.string().min(1, "Password is required"),
+});
+export type DeleteAccountInput = z.infer<typeof deleteAccountInputSchema>;
+
 // Categories
 
 export const CATEGORY_COLORS = ["#ef4444", "#f97316", "#f59e0b", "#22c55e", "#14b8a6", "#3b82f6", "#a855f7", "#ec4899"] as const;

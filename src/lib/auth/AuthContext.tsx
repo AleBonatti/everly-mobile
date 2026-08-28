@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import { apiFetch, ApiError } from "../api/client";
 import { authUserWithTokenSchema, loginInputSchema, registerInputSchema, type LoginInput, type RegisterInput } from "../api/schemas";
 import { clearToken, getToken, setToken } from "./tokenStorage";
-import { updateProfile, logoutOnServer } from "../api/auth";
+import { updateProfile, logoutOnServer, deleteAccount as deleteAccountApi } from "../api/auth";
 import { withMinDelay } from "../withMinDelay";
 
 type AuthUser = {
@@ -18,6 +18,7 @@ type AuthContextValue = {
     login: (input: LoginInput) => Promise<void>;
     register: (input: RegisterInput) => Promise<void>;
     logout: () => Promise<void>;
+    deleteAccount: (password: string) => Promise<void>;
     updateUserName: (name: string) => Promise<void>;
     refreshUser: () => Promise<void>;
 };
@@ -98,6 +99,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(null);
     }
 
+    async function deleteAccount(password: string) {
+        await deleteAccountApi({ password });
+        await clearToken();
+        setUser(null);
+    }
+
     async function updateUserName(name: string) {
         const updated = await updateProfile({ name });
         setUser(updated);
@@ -112,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }
 
-    return <AuthContext.Provider value={{ user, isLoading, login, register, logout, updateUserName, refreshUser }}>{children}</AuthContext.Provider>;
+    return <AuthContext.Provider value={{ user, isLoading, login, register, logout, deleteAccount, updateUserName, refreshUser }}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

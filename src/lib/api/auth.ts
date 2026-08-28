@@ -1,5 +1,5 @@
 import { apiFetch } from "./client";
-import { authUserSchema, changePasswordInputSchema, updateProfileInputSchema, type AuthUser, type ChangePasswordInput, type UpdateProfileInput, forgotPasswordInputSchema, type ForgotPasswordInput } from "./schemas";
+import { authUserSchema, changePasswordInputSchema, updateProfileInputSchema, deleteAccountInputSchema, type AuthUser, type ChangePasswordInput, type UpdateProfileInput, forgotPasswordInputSchema, type ForgotPasswordInput, type DeleteAccountInput } from "./schemas";
 
 export async function forgotPassword(input: ForgotPasswordInput): Promise<void> {
     const parsed = forgotPasswordInputSchema.parse(input);
@@ -22,6 +22,14 @@ export async function updateProfile(input: UpdateProfileInput): Promise<AuthUser
 export async function changePassword(input: ChangePasswordInput): Promise<void> {
     const parsed = changePasswordInputSchema.parse(input);
     await apiFetch<unknown>("/auth/change-password", {
+        method: "POST",
+        body: parsed,
+    });
+}
+
+export async function deleteAccount(input: DeleteAccountInput): Promise<void> {
+    const parsed = deleteAccountInputSchema.parse(input);
+    await apiFetch<unknown>("/auth/delete-account", {
         method: "POST",
         body: parsed,
     });
